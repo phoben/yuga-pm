@@ -5,7 +5,7 @@
   "author": {
     "name": "XiaChao"
   },
-  "repository": "https://github.com/phoben/yg-pm",
+  "repository": "https://github.com/phoben/yuga-pm",
   "license": "MIT",
   "keywords": ["product-manager", "requirements", "brainstorming", "prototyping", "prd", "brd", "claude-code-plugin"]
 }
