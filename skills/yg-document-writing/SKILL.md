@@ -81,7 +81,8 @@ yg-document-writing/
     ├── drd-generator.md  # DRD生成器
     ├── automation-template.md     # 自动化场景模板
     ├── permission-matrix-template.md  # 权限矩阵模板
-    └── view-dashboard-template.md    # 视图仪表盘模板
+    ├── view-dashboard-template.md    # 视图仪表盘模板
+    └── forguncy-project.md    # 活字格项目特征说明
 ```
 
 ## 参考文件
@@ -98,6 +99,7 @@ yg-document-writing/
 | `references/automation-template.md` | 自动化场景设计模板 |
 | `references/permission-matrix-template.md` | 权限矩阵设计模板 |
 | `references/view-dashboard-template.md` | 视图与仪表盘设计模板 |
+| `references/forguncy-project.md` | 活字格类型项目必须先阅读此文档 |
 
 ## 下一步建议
 
