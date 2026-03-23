@@ -76,13 +76,14 @@ cc --plugin-dir /path/to/yg-pm
 
 ## 📚 技能说明
 
-Yuga-PM 提供 8 个核心技能，每个技能专注于产品工作流程的一个环节：
+Yuga-PM 提供 9 个核心技能，每个技能专注于产品工作流程的一个环节：
 
 ### 技能列表
 
 | 技能 | 触发方式 | 用途 |
 |------|----------|------|
 | yg-brainstorming | `/yg-brainstorming` | 需求探索与头脑风暴 |
+| yg-industry-survey | `/yg-industry-survey` | 行业调研与知识库管理 |
 | yg-requirement-extraction | `/yg-requirement-extraction` | 结构化需求提取 |
 | yg-document-writing | `/yg-document-writing` | 需求文档编写 |
 | yg-requirement-reviewer | `/yg-requirement-reviewer` | 需求文档评审 |
@@ -108,7 +109,23 @@ Yuga-PM 提供 8 个核心技能，每个技能专注于产品工作流程的一
 - 需求不明确时
 - 需要技术可行性评估
 
-#### 2. yg-requirement-extraction - 需求提取
+#### 2. yg-industry-survey - 行业调研
+
+系统化调研特定行业，收集基本概念、业务特征、系统设计案例和最佳实践。
+
+**工作流程：**
+1. 解析调研意图，明确行业和方向
+2. 检索知识库，评估现有知识覆盖度
+3. 网络搜索补充信息（如需要）
+4. 生成结构化调研报告
+5. 可选：沉淀到知识库供复用
+
+**适用场景：**
+- 新行业/领域调研
+- 系统设计前收集行业信息
+- 最佳实践研究
+
+#### 3. yg-requirement-extraction - 需求提取
 
 从各种来源提取结构化需求，支持多种输入格式。
 
@@ -124,7 +141,7 @@ Yuga-PM 提供 8 个核心技能，每个技能专注于产品工作流程的一
 - 非功能需求
 - 约束条件
 
-#### 3. yg-document-writing - 文档编写
+#### 4. yg-document-writing - 文档编写
 
 根据模板自动生成专业的需求文档。
 
@@ -142,7 +159,7 @@ Yuga-PM 提供 8 个核心技能，每个技能专注于产品工作流程的一
 - 权限矩阵设计
 - 仪表盘/报表设计
 
-#### 4. yg-requirement-reviewer - 需求评审
+#### 5. yg-requirement-reviewer - 需求评审
 
 执行六阶段全面评审，确保需求文档质量。
 
@@ -154,7 +171,7 @@ Yuga-PM 提供 8 个核心技能，每个技能专注于产品工作流程的一
 5. **模拟测试** - 表结构支持功能验证
 6. **输出报告** - 问题清单与改进建议
 
-#### 5. yg-visualize - 文档可视化
+#### 6. yg-visualize - 文档可视化
 
 将 Markdown 文档转换为精美的 HTML 页面。
 
@@ -164,7 +181,7 @@ Yuga-PM 提供 8 个核心技能，每个技能专注于产品工作流程的一
 - 支持 PDF 导出
 - 响应式布局
 
-#### 6. yg-prototyping - 原型生成
+#### 7. yg-prototyping - 原型生成
 
 从需求文档生成可交互的原型代码。
 
