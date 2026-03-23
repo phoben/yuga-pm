@@ -9,7 +9,7 @@
       "name": "yg-pm",
       "source": "./",
       "description": "产品经理工程化工具套件 - 从需求讨论到原型设计",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "XiaChao"
       }

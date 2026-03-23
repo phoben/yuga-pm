@@ -1,27 +1,29 @@
 {
-  "PreToolUse": {
-    "matcher": "Skill.*yg-",
-    "hooks": [{
-      "type": "command",
-      "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-context.sh\"",
-      "timeout": 10
-    }]
-  },
-  "PostToolUse": {
-    "matcher": "Write|Edit",
-    "hooks": [
-      {
+  "hooks": {
+    "PreToolUse": {
+      "matcher": "Skill.*yg-",
+      "hooks": [{
         "type": "command",
-        "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/format-document.sh\"",
-        "timeout": 30
-      }
-    ]
-  },
-  "Stop": {
-    "hooks": [{
-      "type": "command",
-      "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-todos.sh\"",
-      "timeout": 10
-    }]
+        "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-context.sh\"",
+        "timeout": 10000
+      }]
+    },
+    "PostToolUse": {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/format-document.sh\"",
+          "timeout": 30000
+        }
+      ]
+    },
+    "Stop": {
+      "hooks": [{
+        "type": "command",
+        "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-todos.sh\"",
+        "timeout": 10000
+      }]
+    }
   }
 }
