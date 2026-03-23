@@ -76,7 +76,7 @@ cc --plugin-dir /path/to/yg-pm
 
 ## 📚 技能说明
 
-Yuga-PM 提供 9 个核心技能，每个技能专注于产品工作流程的一个环节：
+Yuga-PM 提供 10 个核心技能，每个技能专注于产品工作流程的一个环节：
 
 ### 技能列表
 
@@ -87,6 +87,7 @@ Yuga-PM 提供 9 个核心技能，每个技能专注于产品工作流程的一
 | yg-requirement-extraction | `/yg-requirement-extraction` | 结构化需求提取 |
 | yg-document-writing | `/yg-document-writing` | 需求文档编写 |
 | yg-requirement-reviewer | `/yg-requirement-reviewer` | 需求文档评审 |
+| yg-question | `/yg-question` | 基于文档的智能问答与设计缺陷检测 |
 | yg-visualize | `/yg-visualize` | 文档可视化 |
 | yg-prototyping | `/yg-prototyping` | 原型生成 |
 | yg-create-document-template | `/yg-create-document-template` | 创建自定义模板 |
@@ -197,6 +198,25 @@ Yuga-PM 提供 9 个核心技能，每个技能专注于产品工作流程的一
 - 组件配置
 - 交互逻辑
 - 样式文件
+
+#### 8. yg-question - 智能问答与设计缺陷检测
+
+基于项目文档的智能问答，通过用户提问检测产品设计缺陷。
+
+**核心特性：**
+- 🎯 **自动项目识别** - 从问题内容或上下文自动定位目标项目
+- 📚 **文档事实调查** - 以项目文档为唯一事实来源
+- 🔍 **SEAR方法论** - 来源、证据、分析、结果的严谨推理框架
+- ⚠️ **缺陷检测** - 每个问题都是对设计的一次检验
+
+**问题类型支持：**
+| 类型 | 示例问题 |
+|------|---------|
+| 功能实现 | "如何进行批量导入？" |
+| 能力边界 | "系统支持多少并发用户？" |
+| 业务场景 | "多人同时编辑如何处理冲突？" |
+| 数据查询 | "如何查询某员工的审批记录？" |
+| 权限流程 | "谁可以审批这个订单？" |
 
 ---
 

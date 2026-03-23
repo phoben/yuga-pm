@@ -48,8 +48,11 @@ description: 将Markdown文档转换为可视化HTML
 ## 使用方式
 
 ```bash
-# 可视化当前文档
+# 可视化当前项目需求文档（自动判断项目）
 /yg-visualize
+
+# 可视化指定项目需求文档
+/yg-visualize --project project-name
 
 # 指定主题
 /yg-visualize --theme dark
