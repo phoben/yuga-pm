@@ -1,0 +1,11 @@
+{
+  "name": "yg-pm",
+  "version": "1.0.0",
+  "description": "产品经理工程化工具套件 - 从需求讨论到原型设计",
+  "author": {
+    "name": "XiaChao"
+  },
+  "repository": "https://github.com/phoben/yg-pm",
+  "license": "MIT",
+  "keywords": ["product-manager", "requirements", "brainstorming", "prototyping", "prd", "brd", "claude-code-plugin"]
+}
