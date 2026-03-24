@@ -5,16 +5,37 @@ description: 将Markdown文档转换为可视化HTML
 
 # 可视化文档
 
-## ⚠️ 执行优先级 - 必须首先执行
+## 输入参数
 
-**在读取任何文档内容之前，必须按以下顺序执行：**
+**必须首先确定要处理的文档路径：**
+
+| 参数 | 来源 | 说明 |
+|-----|------|------|
+| `doc_path` | 用户指定 或 项目文档 | Markdown 文档的绝对路径 |
+
+**获取方式**：
+1. 用户直接指定路径 → 使用该路径
+2. 用户未指定 → 检查当前项目的 `.yg-pm\projects` 目录下的项目文件夹内部文件
+3. 无项目上下文 → 询问用户文档路径
+
+**确认文档路径后再继续执行下面的"执行优先级"步骤！**
+
+---
+
+## ⚠️ 执行优先级 - 必须严格按顺序执行
+
+### 步骤0: 确定文档路径（首先执行）
+
+从上面"输入参数"部分描述的方式获取 `doc_path`。
+
+**如果无法确定文档路径，必须立即询问用户，不得继续执行！**
 
 ### 步骤1: 获取文档元信息（必须）
 
 使用 Bash 工具执行脚本获取文档规模信息：
 
 ```bash
-bash skills/yg-visualize/scripts/extract-outline.sh <doc_path>
+bash /scripts/extract-outline.sh "$doc_path"
 ```
 
 脚本返回 JSON 格式：
@@ -34,7 +55,12 @@ bash skills/yg-visualize/scripts/extract-outline.sh <doc_path>
 | < 30000 | 直接处理 | 单Agent一次性完成 |
 | >= 30000 | 主从协调 | 启动多个SubAgent并行处理 |
 
-**🚫 禁止跳过此步骤直接读取文档全文！**
+**✅ 执行前检查清单**：
+- [ ] 已确认文档路径 `doc_path`
+- [ ] 已执行 extract-outline.sh 脚本
+- [ ] 已获取 charCount 并决定处理模式
+
+**🚫 未完成以上检查，禁止继续执行！**
 
 ---
 
@@ -68,38 +94,14 @@ bash skills/yg-visualize/scripts/extract-outline.sh <doc_path>
 
 ### 调用 ui-ux-pro-max 的时机
 
-在生成 HTML **之前**，必须先调用 `ui-ux-pro-max` 获取设计系统：
+在生成 HTML **之前**，必须先调用 `ui-ux-pro-max` 技能获取设计系统：
 
 ```
 执行流程:
 1. 解析 Markdown 文档结构
-2. ⚡ 调用 ui-ux-pro-max 获取设计系统（配色、字体、样式）
+2. ⚡ 调用 ui-ux-pro-max 技能获取设计系统（配色、字体、样式）
 3. 根据设计系统生成 HTML 样式
 4. 渲染最终 HTML 文件
-```
-
-### ui-ux-pro-max 调用方式
-
-根据文档类型选择调用参数：
-
-| 文档类型 | 调用示例 |
-|---------|---------|
-| 需求文档 | `--design-system -p "PRD-Dashboard"` |
-| 审查报告 | `--design-system -p "Review-Report"` |
-| 技术文档 | `--design-system -p "Tech-Docs"` |
-
-**调用命令**：
-```bash
-python3 skills/ui-ux-pro-max/scripts/search.py "<document_type> <keywords>" --design-system -p "ProjectName"
-```
-
-**示例**：
-```bash
-# 需求文档可视化
-python3 skills/ui-ux-pro-max/scripts/search.py "document report professional" --design-system -p "PRD-Doc"
-
-# 数据仪表板
-python3 skills/ui-ux-pro-max/scripts/search.py "dashboard data analytics" --design-system -p "Dashboard-Report"
 ```
 
 ### 设计系统应用
