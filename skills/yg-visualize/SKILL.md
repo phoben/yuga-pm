@@ -20,7 +20,7 @@ description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定
 ### 步骤2: 执行脚本获取文档元信息
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/extract-outline.sh "$doc_path"
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/extract-outline.sh" "$doc_path"
 ```
 
 ### 步骤3: 根据返回结果选择处理模式
