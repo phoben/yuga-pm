@@ -30,15 +30,19 @@
 - 50000字符 -> 主从协调，4个SubAgent
 - 80000字符 -> 主从协调，7个SubAgent
 
+**阈值选择依据**：
+- 30000字符分界点：基于实测，单Agent处理3万字符约需3-5分钟，超过此阈值后上下文压力增大，超时风险显著提升
+- 每增加1万字符增加1个SubAgent：平衡并行收益与协调开销
+
 ## 文件结构
 
 ```
 skills/yg-visualize/
-├── SKILL.md                    # 主技能文件（更新）
-├── agents/
-│   └── visualize-page.md       # 新建：页面片段生成Agent
-├── scripts/
-│   └── extract-outline.sh      # 新建：提取文档层级结构脚本
+├── SKILL.md                    # 主技能文件（待更新）
+├── agents/                     # [待创建目录]
+│   └── visualize-page.md       # [待创建] 页面片段生成Agent
+├── scripts/                    # [待创建目录]
+│   └── extract-outline.sh      # [待创建] 提取文档层级结构脚本
 └── references/
     ├── yg-create-html.md       # 现有：HTML生成规范
     └── report.html             # 现有：HTML模板
@@ -56,6 +60,7 @@ skills/yg-visualize/
 │
 ├── 阶段2: 文档分析与规划
 │   ├── 读取文档前3000字符（摘要）
+│   ├── 调用 ui-ux-pro-max 获取设计系统
 │   ├── 生成全局设计规范 -> .temp/design-spec.css
 │   └── 生成分块计划 JSON
 │
@@ -77,6 +82,48 @@ skills/yg-visualize/
 ```
 
 ## 组件设计
+
+### 0. ui-ux-pro-max 集成
+
+**调用时机**：阶段2"文档分析与规划"中，主Agent读取文档摘要后调用。
+
+**调用方式**：
+```bash
+python3 skills/ui-ux-pro-max/scripts/search.py "<document_type> <style_keywords>" --design-system -p "DocName"
+```
+
+**设计系统传递**：
+1. 主Agent调用 ui-ux-pro-max 获取设计系统JSON
+2. 主Agent解析设计系统，生成 `design-spec.css` 文件：
+   - CSS变量（颜色、字体、间距、圆角）
+   - 组件样式类名映射
+3. SubAgent读取 `design-spec.css` 应用样式
+
+**设计规范文件结构**：
+```css
+/* .temp/design-spec.css */
+:root {
+  /* 从 ui-ux-pro-max palette 提取 */
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+
+  /* 从 typography 提取 */
+  --font-heading: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* 从 style 提取 */
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 图表颜色（用于 Chart.js） */
+:root {
+  --chart-colors: ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444"];
+}
+```
 
 ### 1. extract-outline.sh 脚本
 
@@ -142,11 +189,24 @@ tools:
 
 **输入参数**（由主Agent传递）：
 - `doc_path`: 文档路径
-- `assigned_sections`: 分配的章节列表
-- `char_range`: 字符范围 [start, end]
+- `assigned_sections`: 分配的章节列表，格式：
+  ```json
+  [
+    {
+      "id": "section-1",
+      "title": "1. 产品概述",
+      "charRange": [0, 8500]
+    },
+    {
+      "id": "section-2",
+      "title": "2. 功能需求",
+      "charRange": [8501, 18000]
+    }
+  ]
+  ```
 - `design_spec_path`: 设计规范文件路径
 - `template_path`: 模板文件路径
-- `region_id`: 目标区域ID
+- `region_id`: 目标区域ID（如 "section-1"）
 
 **工作流程**：
 1. 读取设计规范文件
@@ -182,7 +242,98 @@ tools:
    - char_range
 ```
 
-### 4. 模板占位结构
+### 4. 图表处理策略
+
+**职责划分**：
+| 图表类型 | 处理者 | 原因 |
+|---------|-------|------|
+| Chart.js 数据图表 | SubAgent | 数据与章节绑定，内容范围内处理 |
+| Mermaid 流程图 | SubAgent | 小型图表，章节内独立 |
+| 大型架构图/蓝图 | 主Agent | 可能跨章节，需全局视角 |
+
+**Chart.js 处理规则**（SubAgent执行）：
+1. 扫描章节内表格数据
+2. 识别可量化数据（评分、占比、趋势）
+3. 生成 Chart.js 配置
+4. 使用设计规范中的 `--chart-colors`
+
+**Mermaid 处理规则**（SubAgent执行）：
+1. 提取 ````mermaid` 代码块
+2. 节点数 ≤ 10 直接渲染
+3. 节点数 > 10 标记警告，建议拆分
+
+**大型架构图处理**（主Agent预处理）：
+1. 主Agent在阶段2扫描全文识别大型图表
+2. 主Agent生成架构图HTML，注入模板头部
+3. SubAgent跳过该图表，仅保留引用链接
+
+### 5. 并行执行机制
+
+**SubAgent 启动方式**：
+```
+主Agent使用 Agent 工具启动后台任务：
+- subagent_type: "yg-pm:visualize-page"
+- run_in_background: true
+- 同时启动多个Agent，记录所有 agentId
+```
+
+**等待机制**：
+```
+主Agent使用 TaskOutput 工具等待：
+- task_id: 从 Agent 返回的 agentId
+- block: true
+- timeout: 300000 (5分钟/Agent)
+
+等待所有Agent完成后继续：
+for agentId in agentIds:
+    result = TaskOutput(task_id=agentId, block=true, timeout=300000)
+```
+
+**超时处理**：
+- 单个SubAgent超时（5分钟）：标记该区域失败
+- 主Agent继续等待其他SubAgent
+- 失败区域由主Agent补充填充或生成占位提示
+
+**区域隔离保证**：
+- 模板预分配独立区域，ID唯一
+- SubAgent只能编辑自己的 `region_id` 区域
+- 使用 Edit 工具精确匹配区域边界，避免误编辑
+
+### 6. 模板占位结构
+
+**与现有模板兼容**：
+
+现有 `report.html` 使用 `__MD_CONTENT__` 占位符。主Agent在阶段3处理：
+
+```html
+<!-- 主Agent将现有模板的 __MD_CONTENT__ 替换为分区域结构 -->
+<main class="main-content">
+  __QUICK_SUMMARY__
+  __CHARTS_HTML__
+
+  <!-- 分区域结构（替换原有 __MD_CONTENT__） -->
+  <div id="section-1" data-placeholder="true" data-region="true">
+    <!-- SubAgent #1 填充 -->
+  </div>
+  <div id="section-2" data-placeholder="true" data-region="true">
+    <!-- SubAgent #2 填充 -->
+  </div>
+  <!-- ... 更多区域 -->
+</main>
+```
+
+**SubAgent 填充逻辑**：
+```javascript
+// SubAgent 使用 Edit 工具，匹配区域边界
+// old_string: 从 <div id="section-N" ...> 到 </div>
+// new_string: 完整的 HTML 内容
+
+// 示例：
+old_string: '<div id="section-1" data-placeholder="true" data-region="true">\n  <!-- SubAgent #1 填充 -->\n  </div>'
+new_string: '<div id="section-1" data-region="true">\n  <h2>1. 产品概述</h2>\n  <p>内容...</p>\n  </div>'
+```
+
+**完整模板结构**：
 
 ```html
 <!DOCTYPE html>
@@ -212,10 +363,26 @@ tools:
 
 | 错误类型 | 处理策略 |
 |---------|---------|
-| 脚本执行失败 | 回退到直接处理模式 |
+| 脚本执行失败 | 回退到直接处理模式（见下方详细流程）|
 | SubAgent 超时 | 主Agent补充填充该区域 |
 | 区域填充失败 | 生成占位提示，保留其他内容 |
 | 并发写入冲突 | 分区域独立，无冲突风险 |
+
+### 回退流程（脚本执行失败时）
+
+```
+触发条件: extract-outline.sh 执行失败或返回异常
+
+回退步骤:
+1. 检测脚本失败，记录错误日志
+2. 放弃主从协调模式
+3. 恢复到直接处理模式（现有SKILL.md流程）
+4. 清理已生成的临时文件（如 .temp/ 目录）
+
+状态处理:
+- 无需恢复状态，主从模式未启动前回退
+- 直接处理模式从头开始
+```
 
 ## 实现步骤
 
