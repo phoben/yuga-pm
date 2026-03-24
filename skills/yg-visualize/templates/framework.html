@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{doc-title}}</title>
+
+  <!-- CDN Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* ============================================
+       CSS Variables - Light Theme (Default)
+       ============================================ */
+    :root {
+      /* Colors */
+      --primary: #3b82f6;
+      --primary-foreground: #ffffff;
+      --secondary: #64748b;
+      --secondary-foreground: #ffffff;
+      --background: #ffffff;
+      --foreground: #1f2937;
+      --card-bg: #ffffff;
+      --card-border: #e5e7eb;
+      --border: #e5e7eb;
+      --muted: #f3f4f6;
+      --muted-foreground: #6b7280;
+
+      /* Header specific */
+      --header-bg: rgba(255, 255, 255, 0.85);
+      --header-border: #e5e7eb;
+
+      /* Chart Colors */
+      --chart-color-1: #3b82f6;
+      --chart-color-2: #10b981;
+      --chart-color-3: #f59e0b;
+      --chart-color-4: #ef4444;
+      --chart-color-5: #8b5cf6;
+
+      /* Typography */
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+
+      /* Spacing */
+      --radius: 8px;
+      --sidebar-width: 260px;
+      --header-height: 56px;
+
+      /* Scrollbar */
+      --scrollbar-track: transparent;
+      --scrollbar-thumb: rgba(0, 0, 0, 0.2);
+      --scrollbar-thumb-hover: rgba(0, 0, 0, 0.4);
+    }
+
+    /* ============================================
+       CSS Variables - Dark Theme
+       ============================================ */
+    [data-theme="dark"] {
+      /* Colors - Dark Theme */
+      --primary: #60a5fa;
+      --primary-foreground: #0f172a;
+      --secondary: #475569;
+      --secondary-foreground: #f1f5f9;
+      --background: #0f172a;
+      --foreground: #f1f5f9;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --border: #334155;
+      --muted: #1e293b;
+      --muted-foreground: #94a3b8;
+
+      /* Header specific */
+      --header-bg: rgba(15, 23, 42, 0.85);
+      --header-border: #334155;
+
+      /* Chart Colors - Adjusted for dark bg */
+      --chart-color-1: #60a5fa;
+      --chart-color-2: #34d399;
+      --chart-color-3: #fbbf24;
+      --chart-color-4: #f87171;
+      --chart-color-5: #a78bfa;
+
+      /* Scrollbar */
+      --scrollbar-track: transparent;
+      --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+      --scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
+    }
+
+    /* ============================================
+       System Preference Auto-Detection
+       ============================================ */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --primary: #60a5fa;
+        --primary-foreground: #0f172a;
+        --secondary: #475569;
+        --secondary-foreground: #f1f5f9;
+        --background: #0f172a;
+        --foreground: #f1f5f9;
+        --card-bg: #1e293b;
+        --card-border: #334155;
+        --border: #334155;
+        --muted: #1e293b;
+        --muted-foreground: #94a3b8;
+        --header-bg: rgba(15, 23, 42, 0.85);
+        --header-border: #334155;
+        --chart-color-1: #60a5fa;
+        --chart-color-2: #34d399;
+        --chart-color-3: #fbbf24;
+        --chart-color-4: #f87171;
+        --chart-color-5: #a78bfa;
+        --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+        --scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
+      }
+    }
+
+    /* ============================================
+       Base Styles
+       ============================================ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--background);
+      color: var(--foreground);
+      line-height: 1.6;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ============================================
+       Fixed Top Header
+       ============================================ */
+    .top-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-height);
+      background: var(--header-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--header-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    .header-tags {
+      display: flex;
+      gap: 8px;
+    }
+
+    .header-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      background: var(--muted);
+      color: var(--muted-foreground);
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: var(--muted);
+      color: var(--foreground);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--border);
+    }
+
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ============================================
+       Sidebar with Auto-Hide Scrollbar
+       ============================================ */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--muted);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      left: 0;
+      top: var(--header-height);
+      bottom: 0;
+      overflow-y: auto;
+      padding: 24px 16px;
+
+      /* Firefox scrollbar - always thin, transparent by default */
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+
+      /* Webkit scrollbar - hidden by default */
+      transition: scrollbar-color 0.3s;
+    }
+
+    /* Show scrollbar on hover or when scrolling */
+    .sidebar:hover,
+    .sidebar.scrolling {
+      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    }
+
+    /* Webkit scrollbar styling */
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: var(--scrollbar-track);
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 3px;
+      transition: background 0.3s;
+    }
+
+    .sidebar:hover::-webkit-scrollbar-thumb,
+    .sidebar.scrolling::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+    }
+
+    .sidebar:hover::-webkit-scrollbar-thumb:hover,
+    .sidebar.scrolling::-webkit-scrollbar-thumb:hover {
+      background: var(--scrollbar-thumb-hover);
+    }
+
+    .sidebar-header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .doc-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      display: block;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      color: var(--muted-foreground);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .nav-item:hover,
+    .nav-item[data-active="true"] {
+      background: var(--background);
+      color: var(--foreground);
+    }
+
+    .nav-item[data-level="1"] { padding-left: 12px; font-weight: 500; }
+    .nav-item[data-level="2"] { padding-left: 24px; font-size: 13px; }
+    .nav-item[data-level="3"] { padding-left: 36px; font-size: 12px; }
+
+    /* ============================================
+       Main Content
+       ============================================ */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      margin-top: var(--header-height);
+      padding: 32px 48px;
+      max-width: 900px;
+    }
+
+    .content-header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .content-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .content-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--muted-foreground);
+    }
+
+    .content-body {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    section[data-region="true"] {
+      scroll-margin-top: calc(var(--header-height) + 24px);
+    }
+
+    section h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section h3 {
+      font-size: 18px;
+      font-weight: 500;
+      margin: 24px 0 12px;
+    }
+
+    section p {
+      margin-bottom: 12px;
+    }
+
+    section ul, section ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+
+    section li {
+      margin-bottom: 6px;
+    }
+
+    /* ============================================
+       Responsive
+       ============================================ */
+    @media (max-width: 768px) {
+      .top-header {
+        padding: 0 16px;
+      }
+
+      .header-title {
+        font-size: 14px;
+      }
+
+      .header-tags {
+        display: none;
+      }
+
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+        top: var(--header-height);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 24px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Fixed Top Header -->
+  <header class="top-header">
+    <div class="header-left">
+      <span class="header-title" data-fill="header-title">{{doc-title}}</span>
+      <div class="header-tags" data-fill="header-tags">
+        <!-- Tags will be populated dynamically -->
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <i data-lucide="sun" class="icon-sun"></i>
+        <i data-lucide="moon" class="icon-moon" style="display: none;"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" data-fill="sidebar">
+      <div class="sidebar-header">
+        <h1 class="doc-title" data-fill="doc-title">{{doc-title}}</h1>
+      </div>
+      <nav class="sidebar-nav" data-fill="nav">
+        <!-- Main Agent fills navigation items -->
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="content-header" data-fill="header">
+        <!-- Main Agent fills document meta info -->
+      </header>
+
+      <article class="content-body" data-fill="content">
+        <!-- Sections generated dynamically -->
+      </article>
+    </main>
+  </div>
+
+  <!-- Interaction Scripts -->
+  <script>
+    /* ============================================
+       Theme Management
+       ============================================ */
+    const THEME_KEY = 'yg-visualize-theme';
+
+    function getSystemTheme() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function getStoredTheme() {
+      return localStorage.getItem(THEME_KEY);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      updateThemeIcons(theme);
+      updateMermaidTheme(theme);
+      localStorage.setItem(THEME_KEY, theme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(newTheme);
+    }
+
+    function updateThemeIcons(theme) {
+      const sunIcon = document.querySelector('.icon-sun');
+      const moonIcon = document.querySelector('.icon-moon');
+      if (theme === 'dark') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+      } else {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+      }
+    }
+
+    function updateMermaidTheme(theme) {
+      // Mermaid theme must be configured before rendering
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: theme === 'dark' ? 'dark' : 'default'
+      });
+    }
+
+    // Initialize theme on page load
+    (function initTheme() {
+      const storedTheme = getStoredTheme();
+      if (storedTheme) {
+        setTheme(storedTheme);
+      } else {
+        const systemTheme = getSystemTheme();
+        setTheme(systemTheme);
+      }
+    })();
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!getStoredTheme()) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+
+    /* ============================================
+       Scrollbar Visibility
+       ============================================ */
+    const sidebar = document.querySelector('.sidebar');
+    let scrollTimeout;
+
+    sidebar.addEventListener('scroll', () => {
+      sidebar.classList.add('scrolling');
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        sidebar.classList.remove('scrolling');
+      }, 1000);
+    });
+
+    /* ============================================
+       Navigation Sync with IntersectionObserver
+       ============================================ */
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Initialize Highlight.js
+    hljs.highlightAll();
+
+    // Scroll spy for navigation
+    const sections = document.querySelectorAll('section[data-region="true"]');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -70% 0px',
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navItems.forEach(item => {
+            const isActive = item.getAttribute('href') === '#' + entry.target.id;
+            item.dataset.active = isActive;
+          });
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach(section => observer.observe(section));
+
+    // Smooth scroll for navigation items
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = item.getAttribute('href');
+        const target = document.querySelector(targetId);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
