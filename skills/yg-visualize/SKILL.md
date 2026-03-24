@@ -19,7 +19,7 @@ description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定
 ### 步骤2: 执行脚本获取元信息
 
 ```bash
-bash scripts/extract-outline.sh "$doc_path"
+bash "${CLAUDE_SKILL_DIR}/scripts/extract-outline.sh" "$doc_path"
 ```
 
 ### 步骤3: 校验文档规范
@@ -44,7 +44,7 @@ bash scripts/extract-outline.sh "$doc_path"
 校验文件格式和标题结构
 
 ### 阶段2: 准备模板
-1. 选择框架模板（light/dark，默认 light）
+1. 选择框架模板（支持明暗主题切换）
 2. 复制到目标目录
 3. 填充文档元信息（title、nav、header）
 4. 根据 outline 生成 section 结构
@@ -61,8 +61,7 @@ bash scripts/extract-outline.sh "$doc_path"
 ## 模板说明
 
 ### 框架模板
-- `templates/framework-light.html` - 亮色主题
-- `templates/framework-dark.html` - 暗色主题
+- `templates/framework.html` - 统一框架模板（支持明暗主题切换）
 
 ### 组件模板
 位于 `templates/components/`，共 11 个：
@@ -78,6 +77,14 @@ bash scripts/extract-outline.sh "$doc_path"
 - architecture-diagram.html - 架构图
 - flowchart.html - 流程图
 
+### 图表渲染规范
+- 小型图表（节点 ≤ 10）→ 优先使用 Mermaid
+- 架构图/蓝图 → 使用 HTML 模板（architecture-diagram.html）
+- 复杂流程图 → 使用 HTML 模板（flowchart.html）
+- **禁止使用字符串/ASCII 绘制图表**
+
+详见 `references/diagram-rendering-spec.md`
+
 ### 占位符约定
 - `{{title}}` - 标题文本
 - `{{desc}}` - 描述文本
@@ -90,9 +97,9 @@ bash scripts/extract-outline.sh "$doc_path"
 
 | 文件 | 用途 |
 |------|------|
-| references/chart-specs.md | 图表类型选择规则 |
-| references/mermaid-specs.md | Mermaid 使用规范 |
-| references/icon-system.md | 图标映射表 |
+| ${CLAUDE_SKILL_DIR}/references/diagram-rendering-spec.md | 图表渲染选择规范 |
+| ${CLAUDE_SKILL_DIR}/references/mermaid-specs.md | Mermaid 使用规范 |
+| ${CLAUDE_SKILL_DIR}/references/icon-system.md | 图标映射表 |
 
 ## 验收标准
 - SKILL.md 行数 ≤ 300
