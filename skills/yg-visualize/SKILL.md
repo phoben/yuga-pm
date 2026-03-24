@@ -15,7 +15,7 @@ description: "将Markdown文档转换为可视化HTML。⚠️ 必须先执行 e
 
 2. **执行脚本获取文档元信息**
    ```bash
-   bash skills/yg-visualize/scripts/extract-outline.sh "$doc_path"
+   bash "${CLAUDE_PLUGIN_ROOT}/skills/yg-visualize/scripts/extract-outline.sh" "$doc_path"
    ```
 
 3. **根据 `charCount` 决定处理模式**
@@ -107,7 +107,7 @@ description: "将Markdown文档转换为可视化HTML。⚠️ 必须先执行 e
 
 ```
 步骤1.1: 获取文档信息
-├── 调用 scripts/extract-outline.sh <doc_path>
+├── 调用 ${CLAUDE_PLUGIN_ROOT}/skills/yg-visualize/scripts/extract-outline.sh <doc_path>
 ├── 获取字符数、行数、标题结构
 └── 返回 JSON 格式的文档元信息
 
