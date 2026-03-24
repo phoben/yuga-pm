@@ -1,262 +1,31 @@
 ---
 name: yg-create-html
-description: "将 Markdown 文档转换为精美的 HTML 可视化报告。当用户要求将 Markdown 转换为 HTML、生成可视化报告、创建专业文档展示、需要图表/流程图渲染时触发。基于 shadcn/ui 组件体系，支持明暗主题切换，使用 Lucide Icons 图标系统，支持任意结构的 Markdown 文档。"
+description: "将 Markdown 文档转换为精美的 HTML 可视化报告。当用户要求将 Markdown 转换为 HTML、生成可视化报告、创建专业文档展示、需要图表/流程图渲染时触发。设计系统由 ui-ux-pro-max 驱动，支持动态配色和字体方案。"
 ---
 
 # Markdown 转 HTML 可视化报告
 
 ## 定位
 
-本技能是一个**通用的** Markdown → HTML 可视化转换器，基于 **shadcn/ui** 组件体系构建。通过智能分析 Markdown 结构，自动生成专业的 HTML 报告，包含：
+本技能是一个**通用的** Markdown → HTML 可视化转换器，负责**结构与功能**：
 
 - 动态图表（Chart.js）
 - 流程图/时序图/ER图（Mermaid）
 - 代码高亮（highlight.js）
-- 响应式布局与**明暗主题切换**
+- 响应式布局与主题切换
 - 可折叠内容区块
-- 基于 Lucide Icons 的图标系统
 
-## 设计哲学
+**审美决策**由 `ui-ux-pro-max` 技能驱动，包括：配色方案、字体选择、视觉风格。
 
-### 1. 内容优先，形式服务内容
+## 职责边界
 
-HTML 输出的核心目标是**增强内容的可读性和信息传达效率**。遵循以下原则：
-
-- **信息层级清晰**：通过字体大小、颜色、间距建立视觉层级
-- **关键信息突出**：使用卡片、标签、徽章突出重要数据
-- **减少认知负担**：合理分组、渐进披露（折叠详情）
-- **一致性**：相同类型的内容使用相同的视觉表达
-
-### 2. 技术栈
-
-**核心组件库**：shadcn/ui（基于 Radix UI + Tailwind CSS）
-
-```
-shadcn/ui 组件映射：
-├── Card → Section Card, Topic Card, Chart Card
-├── Badge → 状态标签、优先级标记
-├── Alert → 警告框、提示框
-├── Collapsible → 可折叠区块
-├── Tabs → 内容分组（可选）
-├── Accordion → 问题/风险列表
-├── Table → 数据表格
-└── Button → 交互按钮
-```
-
-**图标系统**：Lucide Icons（通过 `better-icons` 选择）
-
-```
-图标选择工具：better-icons
-使用场景：
-- 侧边栏导航图标
-- 状态指示图标
-- 操作按钮图标
-- 空状态图标
-```
-
-### 3. 明暗主题切换
-
-报告**必须**支持明暗主题切换功能：
-
-- **右上角主题切换按钮**：位于页面顶部 Header 右侧
-- **默认主题**：深色主题（dark）
-- **主题持久化**：使用 `localStorage` 记住用户选择
-- **平滑过渡**：主题切换时使用 CSS transition 实现平滑过渡
-
-#### 主题切换按钮设计
-
-```html
-<button id="theme-toggle" class="theme-toggle-btn" title="切换主题">
-  <!-- 深色模式显示太阳图标，浅色模式显示月亮图标 -->
-  <i data-lucide="sun" class="lucide"></i>   <!-- dark mode -->
-  <i data-lucide="moon" class="lucide hidden"></i>  <!-- light mode -->
-</button>
-```
-
-**按钮样式**：
-- 位置：`.top-header .header-right`
-- 尺寸：`36px × 36px`
-- 圆角：`8px`
-- 背景：`hsl(var(--secondary))`
-- 悬停效果：`hsl(var(--muted))`
-- 过渡动画：`0.2s ease`
-
-#### CSS 变量系统
-
-使用 CSS 自定义属性实现主题切换：
-
-```css
-/* 深色主题（默认） */
-:root, :root.dark {
-  --background: 0 0% 3.9%;           /* #09090b */
-  --foreground: 0 0% 98%;            /* #fafafa */
-  --card: 0 0% 3.9%;                 /* #09090b */
-  --card-foreground: 0 0% 98%;       /* #fafafa */
-  --primary: 0 0% 98%;               /* #fafafa */
-  --primary-foreground: 0 0% 9%;     /* #171717 */
-  --secondary: 0 0% 14.9%;           /* #27272a */
-  --secondary-foreground: 0 0% 98%;  /* #fafafa */
-  --muted: 0 0% 14.9%;               /* #27272a */
-  --muted-foreground: 0 0% 63.9%;    /* #a1a1aa */
-  --border: 0 0% 14.9%;              /* #27272a */
-}
-
-/* 浅色主题 */
-:root.light {
-  --background: 0 0% 100%;           /* #ffffff */
-  --foreground: 0 0% 3.9%;           /* #09090b */
-  --card: 0 0% 100%;                 /* #ffffff */
-  --card-foreground: 0 0% 3.9%;      /* #09090b */
-  --primary: 0 0% 9%;                /* #171717 */
-  --primary-foreground: 0 0% 98%;    /* #fafafa */
-  --secondary: 0 0% 96.1%;           /* #f4f4f5 */
-  --secondary-foreground: 0 0% 9%;   /* #171717 */
-  --muted: 0 0% 96.1%;               /* #f4f4f5 */
-  --muted-foreground: 0 0% 45.1%;    /* #71717a */
-  --border: 0 0% 89.8%;              /* #e4e4e7 */
-}
-```
-
-#### 主题切换 JavaScript
-
-```javascript
-// 主题切换逻辑
-function toggleTheme() {
-  const html = document.documentElement;
-  const isDark = html.classList.contains('dark');
-
-  html.classList.remove('dark', 'light');
-  html.classList.add(isDark ? 'light' : 'dark');
-  localStorage.setItem('theme', isDark ? 'light' : 'dark');
-
-  // 切换图标显示
-  document.querySelectorAll('#theme-toggle .lucide').forEach(icon => {
-    icon.classList.toggle('hidden');
-  });
-
-  // 更新 Mermaid 主题
-  updateMermaidTheme(!isDark);
-
-  // 更新 Chart.js 图表颜色
-  updateChartColors(!isDark);
-}
-
-// 初始化主题（从 localStorage 读取）
-function initTheme() {
-  const saved = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = saved || (prefersDark ? 'dark' : 'light');
-
-  document.documentElement.classList.add(theme);
-
-  // 设置正确的图标
-  const isDark = theme === 'dark';
-  document.querySelector('#theme-toggle [data-lucide="sun"]').classList.toggle('hidden', !isDark);
-  document.querySelector('#theme-toggle [data-lucide="moon"]').classList.toggle('hidden', isDark);
-}
-```
-
-#### Mermaid 主题适配
-
-主题切换时同步更新 Mermaid 图表主题：
-
-```javascript
-const mermaidThemes = {
-  dark: {
-    theme: 'dark',
-    themeVariables: {
-      primaryColor: '#3b82f6',
-      primaryTextColor: '#fafafa',
-      background: '#09090b',
-      mainBkg: '#27272a',
-      nodeBorder: '#3b82f6',
-    }
-  },
-  light: {
-    theme: 'default',
-    themeVariables: {
-      primaryColor: '#3b82f6',
-      primaryTextColor: '#09090b',
-      background: '#ffffff',
-      mainBkg: '#f4f4f5',
-      nodeBorder: '#3b82f6',
-    }
-  }
-};
-
-function updateMermaidTheme(isDark) {
-  const config = isDark ? mermaidThemes.dark : mermaidThemes.light;
-  mermaid.initialize(config);
-  // 重新渲染所有 Mermaid 图表
-  document.querySelectorAll('.mermaid').forEach(el => {
-    mermaid.init(undefined, el);
-  });
-}
-```
-
-#### Chart.js 图表颜色适配
-
-```javascript
-const chartColors = {
-  dark: {
-    text: '#fafafa',
-    grid: '#27272a',
-    background: '#09090b'
-  },
-  light: {
-    text: '#09090b',
-    grid: '#e4e4e7',
-    background: '#ffffff'
-  }
-};
-
-function updateChartColors(isDark) {
-  const colors = isDark ? chartColors.dark : chartColors.light;
-  Chart.defaults.color = colors.text;
-  Chart.defaults.borderColor = colors.grid;
-  // 更新现有图表
-  Chart.instances.forEach(chart => chart.update());
-}
-```
-
-### 4. 解耦设计
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  输入层：Markdown 源文档                                  │
-│  - 任意结构的 Markdown                                    │
-│  - 不假设特定字段或格式                                    │
-└───────────────────────┬─────────────────────────────────┘
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│  解析层：内容分析与模式识别                                │
-│  - 结构提取（标题层级、列表、表格）                        │
-│  - 数据识别（数值、评分、状态）                            │
-│  - 图表推荐（根据数据类型选择最佳可视化）                   │
-│  - 图标匹配（通过 better-icons 语义匹配）                 │
-└───────────────────────┬─────────────────────────────────┘
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│  输出层：HTML 渲染（shadcn/ui 风格）                      │
-│  - CSS 变量系统（明暗主题切换）                           │
-│  - 组件样式（Card, Badge, Alert 等）                     │
-│  - Lucide Icons 图标                                    │
-│  - 交互功能（折叠、导航、缩放）                            │
-└─────────────────────────────────────────────────────────┘
-```
-
-### 5. 自适应策略
-
-| 检测到的内容 | 生成的组件 | shadcn/ui 对应 |
-|-------------|-----------|---------------|
-| 带评分的数据表 | 评分柱状图/雷达图 | Card + Chart |
-| 分布/占比数据 | 饼图/环形图 | Card + Chart |
-| 时间序列数据 | 折线图/面积图 | Card + Chart |
-| 对比数据 | 条形图/分组柱状图 | Card + Chart |
-| Mermaid 代码块 | 流程图/时序图 | Card + Mermaid |
-| 代码块 | 语法高亮代码区 | Card + Code |
-| 问题/风险列表 | 可折叠问题卡片 | Accordion |
-| 步骤/流程描述 | 步骤指示器 | Card + Steps |
+| 本技能负责 | ui-ux-pro-max 负责 |
+|-----------|-------------------|
+| Markdown 解析 | 配色方案选择 |
+| 组件结构映射 | 字体配对推荐 |
+| 数据可视化 | 视觉风格决策 |
+| 交互功能实现 | UX 规则检查 |
+| HTML 结构生成 | 可访问性验证 |
 
 ---
 
@@ -326,52 +95,143 @@ outline: [
 - 提取优先级标识（P0/P1/P2、高/中/低、严重/重要/建议）
 - 提取标题、描述、影响范围
 
-### Step 3: 选择图标
+### Step 3: 获取设计系统 ⚡
 
-使用 `better-icons` 根据内容语义选择合适的 Lucide 图标：
+**关键步骤**：调用 `ui-ux-pro-max` 获取设计系统。
 
-#### 图标选择指南
+```bash
+python3 skills/ui-ux-pro-max/scripts/search.py "<document_type> <style_keywords>" --design-system -p "DocName"
+```
 
-| 内容类型 | 推荐 Lucide 图标 | 避免使用 |
-|---------|-----------------|---------|
-| 总览/摘要 | `layout-dashboard`, `file-text`, `clipboard-list` | emoji |
-| 分析/评估 | `bar-chart-2`, `trending-up`, `search` | emoji |
-| 问题/风险 | `alert-triangle`, `alert-circle`, `alert-octagon` | emoji |
-| 解决方案 | `lightbulb`, `check-circle`, `wrench` | emoji |
-| 数据/表格 | `table`, `database`, `hash` | emoji |
-| 流程/步骤 | `git-branch`, `play`, `arrow-right` | emoji |
-| 代码/技术 | `code`, `terminal`, `cpu` | emoji |
-| 测试/验证 | `flask-conical`, `check`, `target` | emoji |
-| 时间/日期 | `calendar`, `clock`, `history` | emoji |
-| 文档/说明 | `file`, `book-open`, `file-check` | emoji |
-| 成功/完成 | `check-circle-2`, `badge-check` | emoji |
-| 警告/注意 | `alert-triangle`, `info` | emoji |
-| 错误/失败 | `x-circle`, `octagon-x` | emoji |
-| 用户/角色 | `user`, `users`, `user-circle` | emoji |
-| 设置/配置 | `settings`, `sliders-horizontal` | emoji |
-
-**图标使用原则**：
-- 优先使用 Lucide Icons SVG
-- 图标尺寸：16px（默认）、20px（强调）、24px（大图标）
-- 颜色继承父元素或使用语义颜色
-- 避免在标题中混用 emoji 和 Lucide 图标
+**获取的设计系统包含**：
+- `palette`：配色方案（主色、辅助色、语义色）
+- `typography`：字体配对（标题字体、正文字体）
+- `style`：视觉风格（圆角、阴影、间距）
+- `effects`：效果参数（模糊、渐变、过渡）
 
 ### Step 4: 选择图表类型
 
-根据识别的数据模式，选择合适的图表：
+**核心原则**：根据数据特征和图表复杂度，选择最合适的渲染方式。
+
+#### 4.1 图表渲染方式选择
+
+| 场景特征 | 渲染方式 | 原因 |
+|---------|---------|------|
+| 小型图表（节点 ≤ 10） | Mermaid | 轻量、关系表达清晰 |
+| 节点简单、关系复杂（多连线/交叉） | Mermaid | Mermaid 擅长表达复杂关系 |
+| 大型蓝图、架构图（节点 > 10） | HTML 绘制 | 更直观、精美、可控 |
+| 复杂流程图（多分支/嵌套） | HTML 绘制 | 布局灵活、交互性强 |
+| 统计数据、排行、比例对比 | Chart.js | 强制使用数据图表 |
+
+#### 4.2 Mermaid 适用场景
+
+**优先使用 Mermaid**：
+
+| 场景 | Mermaid 类型 | 示例 |
+|-----|-------------|------|
+| 简单流程 | `flowchart TD/LR` | 3-5 步骤流程 |
+| 时序交互 | `sequenceDiagram` | API 调用链、用户操作序列 |
+| 状态转换 | `stateDiagram-v2` | 订单状态、审批流程 |
+| 实体关系 | `erDiagram` | 简单 ER 图（≤ 8 表） |
+| 类图 | `classDiagram` | 简单类结构 |
+| 甘特图 | `gantt` | 项目时间线 |
+
+**Mermaid 使用限制**：
+- 节点数建议 ≤ 10 个
+- 超过限制时，拆分为多个子图或改用 HTML 绘制
+- 复杂架构图禁用 Mermaid，改用 HTML + CSS 绘制
+
+#### 4.3 HTML 绘制场景
+
+**必须使用 HTML 绘制**：
+
+| 场景 | 原因 | 实现方式 |
+|-----|------|---------|
+| 系统架构图 | 节点多、布局复杂 | CSS Grid + Flexbox |
+| 微服务架构 | 需要分组、分层 | 自定义组件 + 连线 |
+| 数据流程图 | 需要丰富的视觉效果 | SVG + CSS 动画 |
+| 组织架构图 | 需要精美的卡片样式 | HTML 卡片 + 连接线 |
+| 复杂业务流程 | 多泳道、多分支 | 自定义流程图组件 |
+
+**HTML 图表优势**：
+- 完全自定义样式（由 `ui-ux-pro-max` 提供设计）
+- 支持丰富的交互（悬停、点击、展开）
+- 响应式布局
+- 更精美的视觉效果
+
+#### 4.4 Chart.js 数据图表（强制使用）
+
+**以下场景必须使用 Chart.js 数据图表**：
+
+| 数据特征 | 图表类型 | 使用场景 |
+|---------|---------|---------|
+| 单维度评分/指标 | 柱状图（Bar） | 功能评分、性能指标对比 |
+| 多维度评分 | 雷达图（Radar） | 能力评估、多维对比 |
+| 分类占比 | 环形图（Doughnut）/ 饼图 | 状态分布、类型占比 |
+| 时间趋势 | 折线图（Line）/ 面积图 | 数据变化趋势 |
+| 多组对比 | 分组柱状图 | 多版本/多方案对比 |
+| 排行榜 | 水平条形图 | Top N 排名 |
+| 完成进度 | 仪表盘/进度条 | 完成率、达标率 |
+| 数据分布 | 散点图/气泡图 | 相关性分析 |
+
+**图表强制规则**：
 
 ```
-数据类型？
-├─ 单维度评分/指标 → 柱状图（Bar Chart）
-├─ 多维度评分 → 雷达图（Radar Chart）
-├─ 分类占比 → 环形图（Doughnut）
-├─ 时间趋势 → 折线图（Line）
-├─ 多组对比 → 分组柱状图（Grouped Bar）
-├─ 状态分布 → 条形图（Horizontal Bar）
-└─ 层级结构 → 树图（Treemap）
+检测到以下数据时，必须生成对应图表：
+
+1. 评分表格 → 柱状图/雷达图
+   - 包含数值评分（1-10、百分比、分值）
+   - 多个评分项对比
+
+2. 统计数据 → 环形图/饼图
+   - 分类 + 数量/百分比
+   - 占比分析
+
+3. 排行数据 → 水平条形图
+   - Top N 列表
+   - 排名对比
+
+4. 时间序列 → 折线图
+   - 日期 + 数值
+   - 趋势分析
+
+5. 完成状态 → 进度图
+   - 完成/总数
+   - 百分比进度
 ```
 
-**图表数量控制**：最多 3-4 个图表
+**图表数量控制**：
+- 单个文档图表数：2-4 个
+- 相关数据可合并为多系列图表
+- 避免重复信息的图表
+
+#### 4.5 图表选择决策树
+
+```
+需要可视化？
+├─ 是关系/流程图？
+│   ├─ 节点 ≤ 10 且关系复杂？
+│   │   └─ 是 → Mermaid
+│   ├─ 节点 > 10 或大型架构？
+│   │   └─ 是 → HTML 绘制
+│   └─ 简单流程？
+│       └─ 是 → Mermaid
+│
+├─ 是统计数据？
+│   ├─ 评分/指标？
+│   │   ├─ 单维度 → 柱状图
+│   │   └─ 多维度 → 雷达图
+│   ├─ 占比/分布？
+│   │   └─ 环形图/饼图
+│   ├─ 趋势/时序？
+│   │   └─ 折线图/面积图
+│   ├─ 排名？
+│   │   └─ 水平条形图
+│   └─ 进度？
+│       └─ 仪表盘/进度条
+│
+└─ 其他 → 评估最佳方式
+```
 
 ### Step 5: 准备填充数据
 
@@ -388,7 +248,7 @@ outline: [
   ]
 }
 
-// 2. 侧边栏导航（从大纲自动生成，含 Lucide 图标）
+// 2. 侧边栏导航（从大纲自动生成）
 sidebar_nav: [
   { id: "sec-1", label: "第一章", icon: "layout-dashboard", level: 0 },
   { id: "sec-1-1", label: "1.1 子节", icon: null, level: 1 }
@@ -416,13 +276,39 @@ sections: [
 ]
 ```
 
-### Step 6: 渲染 HTML
+### Step 6: 生成 CSS 变量
 
-#### 6.1 读取模板
+根据从 `ui-ux-pro-max` 获取的设计系统，生成 CSS 变量：
+
+```css
+/* 从设计系统动态生成 */
+:root {
+  /* 从 palette.primary 提取 */
+  --primary: <design_system.palette.primary>;
+  --primary-foreground: <design_system.palette.primaryForeground>;
+
+  /* 从 palette.semantic 提取 */
+  --success: <design_system.palette.success>;
+  --warning: <design_system.palette.warning>;
+  --error: <design_system.palette.error>;
+
+  /* 从 typography 提取 */
+  --font-heading: <design_system.typography.heading>;
+  --font-body: <design_system.typography.body>;
+
+  /* 从 style 提取 */
+  --radius: <design_system.style.radius>;
+  --shadow: <design_system.style.shadow>;
+}
+```
+
+### Step 7: 渲染 HTML
+
+#### 7.1 读取模板
 
 模板文件：`\report.html`
 
-#### 6.2 替换占位符
+#### 7.2 替换占位符
 
 | 占位符 | 说明 |
 |--------|------|
@@ -434,30 +320,32 @@ sections: [
 | `__CHARTS_HTML__` | 图表区域 HTML |
 | `__CHART_DATA__` | 图表数据 JSON |
 | `__MD_CONTENT__` | Markdown 渲染后的内容 |
+| `__CSS_VARIABLES__` | 从设计系统生成的 CSS 变量 |
 
-### Step 7: 保存输出
+### Step 8: 保存输出
 
 使用 Write 工具保存 HTML 文件，路径默认与 MD 文件同目录。
 
 ---
 
-## 内容范式识别与样式规范
+## 内容范式识别与组件映射
 
-根据 Markdown 内容的结构特征，自动识别并应用对应的 shadcn/ui 风格组件。
+根据 Markdown 内容的结构特征，自动识别并应用对应的组件结构。
 
----
+### 组件结构规范
+
+**以下规范仅定义结构，不涉及具体样式**。样式由 `ui-ux-pro-max` 提供。
 
 ### 1. 线性流程类（Linear Process）
 
 **识别特征**：有序编号的步骤，步骤之间有先后依赖关系
 
-**推荐组件**：**Step Cards**（shadcn/ui Card 风格）
+**推荐结构**：Step Cards
 
 ```html
 <div class="step-cards">
   <div class="step-card">
     <div class="step-num">
-      <!-- Lucide: circle-dot or number badge -->
       <span class="num">1</span>
     </div>
     <div class="step-content">
@@ -468,30 +356,21 @@ sections: [
 </div>
 ```
 
-**样式要点**（shadcn/ui Card）：
-- 卡片：`bg-card border border-border rounded-lg p-4`
-- 数字徽章：`w-8 h-8 rounded-full bg-primary text-primary-foreground`
-- 间距：`space-y-3`
-
 ---
 
 ### 2. 时间线类（Timeline）
 
 **识别特征**：带日期/时间节点的事件序列
 
-**推荐组件**：**Vertical Timeline**
+**推荐结构**：Vertical Timeline
 
 ```html
 <div class="timeline">
-  <div class="timeline-item external">
-    <div class="timeline-dot">
-      <!-- Lucide: circle -->
-    </div>
+  <div class="timeline-item">
+    <div class="timeline-dot"></div>
     <div class="timeline-content">
       <div class="timeline-header">
         <span class="timeline-date">2024-01-15</span>
-        <!-- Lucide: external-link for external events -->
-        <svg class="lucide-icon external-link"><!-- ... --></svg>
       </div>
       <h4>事件标题</h4>
       <p>事件描述...</p>
@@ -500,18 +379,13 @@ sections: [
 </div>
 ```
 
-**样式要点**：
-- 轴线：`border-l-2 border-border`
-- 节点：`w-3 h-3 rounded-full bg-primary`
-- 外部事件：`text-muted-foreground`
-
 ---
 
 ### 3. 顺序带主题内容（Sequential with Topics）
 
 **识别特征**：有编号且每个编号下有独立标题和详细内容
 
-**推荐组件**：**Topic Cards**（shadcn/ui Card + Badge）
+**推荐结构**：Topic Cards
 
 ```html
 <div class="topic-cards">
@@ -519,25 +393,14 @@ sections: [
     <div class="topic-header">
       <span class="topic-num">01</span>
       <h3>主题标题</h3>
-      <!-- shadcn/ui Badge -->
-      <span class="badge badge-secondary">标签</span>
+      <span class="badge">标签</span>
     </div>
     <div class="topic-body">
       <p>详细内容...</p>
-      <!-- shadcn/ui Alert -->
-      <div class="alert alert-info">
-        <svg class="lucide-icon info"><!-- ... --></svg>
-        <span>重点提示</span>
-      </div>
     </div>
   </div>
 </div>
 ```
-
-**样式要点**：
-- 头部：`bg-muted rounded-t-lg p-4 flex items-center gap-3`
-- 编号：`text-primary font-mono text-sm`
-- Badge：`bg-secondary text-secondary-foreground rounded-full px-2 py-0.5 text-xs`
 
 ---
 
@@ -545,14 +408,13 @@ sections: [
 
 **识别特征**：无序列表项，但每项有标题+描述结构
 
-**推荐组件**：**Feature Grid**（shadcn/ui Card grid）
+**推荐结构**：Feature Grid
 
 ```html
 <div class="feature-grid">
   <div class="feature-item">
     <div class="feature-icon">
-      <!-- Lucide icon based on content -->
-      <svg class="lucide-icon"><!-- package, database, etc. --></svg>
+      <!-- 图标由 ui-ux-pro-max 推荐或使用 Lucide -->
     </div>
     <div class="feature-content">
       <h4>特性名称</h4>
@@ -562,48 +424,30 @@ sections: [
 </div>
 ```
 
-**样式要点**：
-- 图标：根据内容语义选择 Lucide 图标（使用 better-icons）
-- 网格：`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`
-- 卡片：`bg-card border border-border rounded-lg p-4`
-
 ---
 
 ### 5. 矩阵型内容（Matrix）
 
 **识别特征**：结构化表格数据，属性-值对应关系
 
-**推荐组件**：**shadcn/ui Table / KV Grid**
+**推荐结构**：Table / KV Grid
 
 ```html
-<!-- Property Table -->
-<div class="table-container border border-border rounded-lg overflow-hidden">
-  <table class="data-table w-full">
+<div class="table-container">
+  <table class="data-table">
     <thead>
-      <tr class="border-b border-border bg-muted/50">
-        <th class="text-left p-3 font-medium">属性</th>
-        <th class="text-left p-3 font-medium">值</th>
+      <tr>
+        <th>属性</th>
+        <th>值</th>
       </tr>
     </thead>
     <tbody>
-      <tr class="border-b border-border">
-        <td class="p-3 font-medium">名称</td>
-        <td class="p-3">值内容</td>
+      <tr>
+        <td>名称</td>
+        <td>值内容</td>
       </tr>
     </tbody>
   </table>
-</div>
-
-<!-- KV Grid -->
-<div class="kv-grid grid grid-cols-2 md:grid-cols-3 gap-4">
-  <div class="kv-item bg-muted/50 border border-border rounded-lg p-3">
-    <div class="kv-label text-muted-foreground text-xs uppercase tracking-wide mb-1">
-      <svg class="lucide-icon label inline w-3 h-3"><!-- ... --></svg>
-      <span>标签</span>
-    </div>
-    <div class="kv-value font-semibold">值</div>
-    <div class="kv-desc text-muted-foreground text-sm mt-1">补充说明</div>
-  </div>
 </div>
 ```
 
@@ -613,25 +457,13 @@ sections: [
 
 **识别特征**：简短的要点列表，强调快速阅读
 
-**推荐组件**：**Stat Chips / Point Cards**
+**推荐结构**：Stat Chips / Point Cards
 
 ```html
-<!-- Stat Chips -->
-<div class="stat-chips flex flex-wrap gap-3">
-  <div class="stat-chip bg-muted border border-border rounded-full px-4 py-2 flex items-center gap-2">
-    <svg class="lucide-icon check-circle text-success"><!-- ... --></svg>
-    <div>
-      <div class="stat-label text-muted-foreground text-xs">标签</div>
-      <div class="stat-value font-bold">核心内容</div>
-    </div>
-  </div>
-</div>
-
-<!-- Point Cards -->
-<div class="point-cards grid grid-cols-2 md:grid-cols-3 gap-3">
-  <div class="point-card bg-card border border-border rounded-lg p-3 flex items-start gap-2">
-    <svg class="lucide-icon check-circle-2 text-success w-5 h-5 flex-shrink-0"><!-- ... --></svg>
-    <div class="point-text text-sm">核心要点</div>
+<div class="stat-chips">
+  <div class="stat-chip">
+    <div class="stat-label">标签</div>
+    <div class="stat-value">核心内容</div>
   </div>
 </div>
 ```
@@ -642,50 +474,44 @@ sections: [
 
 **识别特征**：包含问题、风险、待办等条目，有优先级标识
 
-**推荐组件**：**shadcn/ui Accordion**
+**推荐结构**：Accordion
 
 ```html
-<div class="accordion space-y-2">
-  <div class="accordion-item border-l-4 border-l-destructive bg-card border border-border rounded-lg">
-    <div class="accordion-header p-4 flex items-center justify-between cursor-pointer">
-      <div class="flex items-center gap-3">
-        <svg class="lucide-icon alert-triangle text-destructive"><!-- ... --></svg>
-        <span class="badge badge-destructive">P0</span>
-        <span class="font-medium">问题标题</span>
-      </div>
-      <svg class="lucide-icon chevron-down text-muted-foreground"><!-- ... --></svg>
+<div class="accordion">
+  <div class="accordion-item">
+    <div class="accordion-header">
+      <span class="badge">P0</span>
+      <span class="font-medium">问题标题</span>
     </div>
-    <div class="accordion-content px-4 pb-4 text-muted-foreground">
+    <div class="accordion-content">
       <p>问题描述...</p>
     </div>
   </div>
 </div>
 ```
 
-**优先级图标与颜色**：
+**优先级标识**：
 
-| 优先级 | Lucide 图标 | 颜色类 |
-|-------|------------|--------|
-| P0/严重 | `alert-octagon` | `text-destructive` |
-| P1/重要 | `alert-triangle` | `text-warning` |
-| P2/建议 | `info` | `text-info` |
-| 完成 | `check-circle-2` | `text-success` |
+| 优先级 | 语义类 | 图标建议 |
+|-------|--------|---------|
+| P0/严重 | `priority-critical` | `alert-octagon` |
+| P1/重要 | `priority-high` | `alert-triangle` |
+| P2/建议 | `priority-medium` | `info` |
+| 完成 | `status-complete` | `check-circle-2` |
 
 ---
 
 ### 8. 代码块（Code Blocks）
 
-**推荐组件**：**shadcn/ui Code Block**
+**推荐结构**：Code Block with Copy
 
 ```html
-<div class="code-block-wrapper bg-muted border border-border rounded-lg overflow-hidden">
-  <div class="code-header bg-muted/50 px-4 py-2 flex items-center justify-between border-b border-border">
-    <span class="code-lang text-muted-foreground text-xs font-mono">sql</span>
-    <button class="copy-btn text-muted-foreground hover:text-foreground">
-      <svg class="lucide-icon copy w-4 h-4"><!-- ... --></svg>
-    </button>
+<div class="code-block-wrapper">
+  <div class="code-header">
+    <span class="code-lang">sql</span>
+    <button class="copy-btn">复制</button>
   </div>
-  <pre class="code-content p-4 overflow-x-auto"><code class="language-sql">-- SQL code</code></pre>
+  <pre class="code-content"><code class="language-sql">-- SQL code</code></pre>
 </div>
 ```
 
@@ -693,21 +519,219 @@ sections: [
 
 ### 9. Mermaid 图表
 
-**推荐组件**：**Card with zoom modal**
+**适用场景**：小型图表、节点简单但关系复杂
+
+**推荐结构**：Card with zoom modal
 
 ```html
-<div class="mermaid-card bg-card border border-border rounded-lg overflow-hidden">
-  <div class="mermaid-header px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-between">
-    <h4 class="font-medium flex items-center gap-2">
-      <svg class="lucide-icon git-branch w-4 h-4"><!-- ... --></svg>
-      流程图
-    </h4>
-    <button class="zoom-btn text-muted-foreground hover:text-foreground">
-      <svg class="lucide-icon maximize-2 w-4 h-4"><!-- ... --></svg>
-    </button>
+<div class="mermaid-card">
+  <div class="mermaid-header">
+    <h4>流程图</h4>
+    <button class="zoom-btn">放大</button>
   </div>
-  <div class="mermaid-content p-4">
+  <div class="mermaid-content">
     <pre class="mermaid">graph TD...</pre>
+  </div>
+</div>
+```
+
+**Mermaid 使用限制**：
+- 节点数建议 ≤ 10
+- 超过限制时拆分或改用 HTML 绘制
+
+---
+
+### 10. HTML 绘制图表
+
+**适用场景**：大型架构图、复杂流程图、系统蓝图
+
+**推荐结构**：自定义 HTML 组件
+
+#### 10.1 架构图组件
+
+```html
+<div class="architecture-diagram">
+  <div class="arch-header">
+    <h4>系统架构</h4>
+    <div class="arch-legend">
+      <span class="legend-item"><span class="dot primary"></span>核心服务</span>
+      <span class="legend-item"><span class="dot secondary"></span>支撑服务</span>
+    </div>
+  </div>
+  <div class="arch-canvas">
+    <!-- 分层布局 -->
+    <div class="arch-layer" data-layer="frontend">
+      <div class="layer-label">前端层</div>
+      <div class="layer-nodes">
+        <div class="arch-node" data-type="primary">Web 应用</div>
+        <div class="arch-node" data-type="primary">移动端</div>
+      </div>
+    </div>
+    <div class="arch-layer" data-layer="backend">
+      <div class="layer-label">服务层</div>
+      <div class="layer-nodes">
+        <div class="arch-node" data-type="primary">API Gateway</div>
+        <div class="arch-node" data-type="secondary">Auth Service</div>
+      </div>
+    </div>
+    <div class="arch-layer" data-layer="data">
+      <div class="layer-label">数据层</div>
+      <div class="layer-nodes">
+        <div class="arch-node" data-type="database">MySQL</div>
+        <div class="arch-node" data-type="cache">Redis</div>
+      </div>
+    </div>
+  </div>
+  <!-- 连接线（SVG） -->
+  <svg class="arch-connections">
+    <line x1="100" y1="50" x2="100" y2="100" class="connection-line" />
+  </svg>
+</div>
+```
+
+#### 10.2 流程图组件
+
+```html
+<div class="flowchart-diagram">
+  <div class="flowchart-header">
+    <h4>业务流程</h4>
+  </div>
+  <div class="flowchart-canvas">
+    <div class="flow-node start">开始</div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node process">处理请求</div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node decision">
+      <span class="decision-text">验证通过？</span>
+      <div class="decision-branches">
+        <div class="branch yes">是</div>
+        <div class="branch no">否</div>
+      </div>
+    </div>
+    <div class="flow-arrow branch-yes"></div>
+    <div class="flow-node end success">完成</div>
+  </div>
+</div>
+```
+
+**HTML 图表样式要点**：
+- 使用 CSS Grid/Flexbox 布局
+- 连接线使用 SVG 或 CSS 伪元素
+- 支持交互（悬停高亮、点击展开）
+- 响应式适配
+
+---
+
+### 11. Chart.js 数据图表（强制使用）
+
+**适用场景**：统计数据、评分对比、占比分析、趋势展示
+
+**强制规则**：检测到可量化数据时必须生成对应图表
+
+#### 11.1 柱状图组件
+
+```html
+<div class="chart-card" data-chart-type="bar">
+  <div class="chart-header">
+    <h4>功能评分对比</h4>
+    <div class="chart-actions">
+      <button class="chart-toggle">切换视图</button>
+    </div>
+  </div>
+  <div class="chart-body">
+    <canvas id="chart-scores"></canvas>
+  </div>
+  <div class="chart-footer">
+    <div class="chart-legend"></div>
+  </div>
+</div>
+```
+
+**Chart.js 配置示例**：
+```javascript
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['功能A', '功能B', '功能C'],
+    datasets: [{
+      label: '评分',
+      data: [85, 72, 90],
+      backgroundColor: ['<from design system>']
+    }]
+  }
+});
+```
+
+#### 11.2 雷达图组件
+
+**适用场景**：多维度评估、能力矩阵
+
+```html
+<div class="chart-card" data-chart-type="radar">
+  <div class="chart-header">
+    <h4>能力评估雷达图</h4>
+  </div>
+  <div class="chart-body">
+    <canvas id="chart-radar"></canvas>
+  </div>
+</div>
+```
+
+#### 11.3 环形图/饼图组件
+
+**适用场景**：占比分析、状态分布
+
+```html
+<div class="chart-card" data-chart-type="doughnut">
+  <div class="chart-header">
+    <h4>状态分布</h4>
+  </div>
+  <div class="chart-body">
+    <canvas id="chart-distribution"></canvas>
+  </div>
+  <div class="chart-footer">
+    <div class="chart-summary">
+      <span class="total">总计: 100</span>
+    </div>
+  </div>
+</div>
+```
+
+#### 11.4 折线图组件
+
+**适用场景**：趋势分析、时间序列
+
+```html
+<div class="chart-card" data-chart-type="line">
+  <div class="chart-header">
+    <h4>数据趋势</h4>
+    <div class="chart-filters">
+      <select class="time-range">
+        <option>近7天</option>
+        <option>近30天</option>
+      </select>
+    </div>
+  </div>
+  <div class="chart-body">
+    <canvas id="chart-trend"></canvas>
+  </div>
+</div>
+```
+
+#### 11.5 图表网格布局
+
+多个图表时使用网格布局：
+
+```html
+<div class="charts-grid">
+  <div class="chart-card chart-wide">
+    <!-- 主要图表（占2列） -->
+  </div>
+  <div class="chart-card">
+    <!-- 次要图表 -->
+  </div>
+  <div class="chart-card">
+    <!-- 次要图表 -->
   </div>
 </div>
 ```
@@ -718,7 +742,7 @@ sections: [
 
 ```
 1. 是否为有序编号 + 有标题结构？
-   → 是：Topic Cards（shadcn/ui Card）
+   → 是：Topic Cards
    → 否：继续判断
 
 2. 是否为有序编号 + 步骤/动作描述？
@@ -738,188 +762,58 @@ sections: [
    → 否：继续判断
 
 6. 是否为问题/风险列表？
-   → 是：Accordion（带优先级图标）
+   → 是：Accordion
    → 否：继续判断
 
 7. 是否为简短短语列表？
    → 是：Stat Chips / Point Cards
+   → 否：继续判断
+
+8. 是否包含可量化数据？
+   → 是：检查数据特征
+      ├─ 评分/指标 → 柱状图/雷达图
+      ├─ 占比/分布 → 环形图/饼图
+      ├─ 趋势/时序 → 折线图
+      └─ 排名 → 水平条形图
+   → 否：使用默认样式
+
+9. 是否包含流程/架构图？
+   → 是：检查复杂度
+      ├─ 节点 ≤ 10 且关系复杂 → Mermaid
+      └─ 节点 > 10 或大型架构 → HTML 绘制
    → 否：使用默认样式
 ```
 
 ---
 
-## 图标使用规范
+## 图标系统
 
-### Lucide Icons 图标选择
+### 图标选择原则
 
-使用 `better-icons` 工具辅助选择图标：
+1. 优先使用 Lucide Icons SVG（与 shadcn/ui 兼容）
+2. 图标尺寸：16px（默认）、20px（强调）、24px（大图标）
+3. 颜色继承父元素或使用语义颜色
+4. **禁止使用 emoji 作为图标**
 
-```
-调用方式：
-better-icons --query "描述语义" --limit 5
+### 常用图标映射
 
-示例：
-better-icons --query "database storage" --limit 5
-→ database, hard-drive, server, container, archive
-```
-
-### 图标渲染格式
-
-```html
-<!-- 内联 SVG（推荐） -->
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-[name]">
-  <path d="..."/>
-</svg>
-
-<!-- 图标尺寸类 -->
-.lucide-sm { width: 14px; height: 14px; }
-.lucide-md { width: 16px; height: 16px; }
-.lucide-lg { width: 20px; height: 20px; }
-.lucide-xl { width: 24px; height: 24px; }
-```
-
-### 图标颜色语义
-
-| 语义 | CSS 类 | 颜色值 |
-|-----|--------|--------|
-| 主要/默认 | `text-foreground` | `#fafafa` |
-| 次要/辅助 | `text-muted-foreground` | `#a1a1aa` |
-| 成功 | `text-success` | `#22c55e` |
-| 警告 | `text-warning` | `#f59e0b` |
-| 错误/危险 | `text-destructive` | `#ef4444` |
-| 信息 | `text-info` | `#3b82f6` |
-
-### 禁止使用 Emoji 的场景
-
-- 侧边栏导航图标
-- 状态标签图标
-- 按钮/交互元素
-- 表格/列表标记
-- 卡片装饰图标
-
-**允许使用 Emoji 的场景**（仅当无法用 Lucide 表达时）：
-- 文档内的示例内容
-- 用户原始 Markdown 中的 emoji
-
----
-
-## 颜色系统（明暗主题切换）
-
-### shadcn/ui 主题变量
-
-```css
-/* 深色主题（默认） */
-:root, :root.dark {
-  /* Background & Foreground */
-  --background: 0 0% 3.9%;          /* #09090b */
-  --foreground: 0 0% 98%;           /* #fafafa */
-
-  /* Card */
-  --card: 0 0% 3.9%;                /* #09090b */
-  --card-foreground: 0 0% 98%;      /* #fafafa */
-
-  /* Primary */
-  --primary: 0 0% 98%;              /* #fafafa */
-  --primary-foreground: 0 0% 9%;    /* #171717 */
-
-  /* Secondary */
-  --secondary: 0 0% 14.9%;          /* #27272a */
-  --secondary-foreground: 0 0% 98%; /* #fafafa */
-
-  /* Muted */
-  --muted: 0 0% 14.9%;              /* #27272a */
-  --muted-foreground: 0 0% 63.9%;   /* #a1a1aa */
-
-  /* Accent */
-  --accent: 0 0% 14.9%;             /* #27272a */
-  --accent-foreground: 0 0% 98%;    /* #fafafa */
-
-  /* Destructive */
-  --destructive: 0 62.8% 30.6%;     /* #991b1b */
-
-  /* Border & Ring */
-  --border: 0 0% 14.9%;             /* #27272a */
-  --ring: 0 0% 83.1%;               /* #d4d4d8 */
-
-  /* Radius */
-  --radius: 0.5rem;
-
-  /* 语义颜色 */
-  --success: 142 76% 36%;           /* #22c55e */
-  --warning: 38 92% 50%;            /* #f59e0b */
-  --info: 217 91% 60%;              /* #3b82f6 */
-}
-
-/* 浅色主题 */
-:root.light {
-  /* Background & Foreground */
-  --background: 0 0% 100%;          /* #ffffff */
-  --foreground: 0 0% 3.9%;          /* #09090b */
-
-  /* Card */
-  --card: 0 0% 100%;                /* #ffffff */
-  --card-foreground: 0 0% 3.9%;     /* #09090b */
-
-  /* Primary */
-  --primary: 0 0% 9%;               /* #171717 */
-  --primary-foreground: 0 0% 98%;   /* #fafafa */
-
-  /* Secondary */
-  --secondary: 0 0% 96.1%;          /* #f4f4f5 */
-  --secondary-foreground: 0 0% 9%;  /* #171717 */
-
-  /* Muted */
-  --muted: 0 0% 96.1%;              /* #f4f4f5 */
-  --muted-foreground: 0 0% 45.1%;   /* #71717a */
-
-  /* Accent */
-  --accent: 0 0% 96.1%;             /* #f4f4f5 */
-  --accent-foreground: 0 0% 9%;     /* #171717 */
-
-  /* Destructive */
-  --destructive: 0 84.2% 60.2%;     /* #ef4444 */
-
-  /* Border & Ring */
-  --border: 0 0% 89.8%;             /* #e4e4e7 */
-  --ring: 0 0% 3.9%;                /* #09090b */
-
-  /* 语义颜色保持不变 */
-  --success: 142 76% 36%;           /* #22c55e */
-  --warning: 38 92% 50%;            /* #f59e0b */
-  --info: 217 91% 60%;              /* #3b82f6 */
-}
-```
-
-### 图表配色
-
-```javascript
-const chartColors = {
-  primary: '#fafafa',
-  secondary: '#a1a1aa',
-  success: '#22c55e',
-  warning: '#f59e0b',
-  destructive: '#ef4444',
-  info: '#3b82f6',
-  purple: '#a855f7',
-  cyan: '#06b6d4',
-  // 调色板
-  palette: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#06b6d4']
-};
-```
-
----
-
-## 排版规范
-
-- **主字体**：`ui-sans-serif, system-ui, sans-serif`（shadcn/ui 默认）
-- **代码字体**：`ui-monospace, SFMono-Regular, Menlo, monospace`
-- **行高**：1.6-1.75（正文），1.3-1.4（标题）
-- **字号层级**：
-  - H1: 24px / 1.5rem
-  - H2: 20px / 1.25rem
-  - H3: 16px / 1rem
-  - 正文: 14px / 0.875rem
-  - 辅助: 12px / 0.75rem
+| 内容类型 | 推荐 Lucide 图标 |
+|---------|-----------------|
+| 总览/摘要 | `layout-dashboard`, `file-text`, `clipboard-list` |
+| 分析/评估 | `bar-chart-2`, `trending-up`, `search` |
+| 问题/风险 | `alert-triangle`, `alert-circle`, `alert-octagon` |
+| 解决方案 | `lightbulb`, `check-circle`, `wrench` |
+| 数据/表格 | `table`, `database`, `hash` |
+| 流程/步骤 | `git-branch`, `play`, `arrow-right` |
+| 代码/技术 | `code`, `terminal`, `cpu` |
+| 测试/验证 | `flask-conical`, `check`, `target` |
+| 时间/日期 | `calendar`, `clock`, `history` |
+| 文档/说明 | `file`, `book-open`, `file-check` |
+| 成功/完成 | `check-circle-2`, `badge-check` |
+| 警告/注意 | `alert-triangle`, `info` |
+| 错误/失败 | `x-circle`, `octagon-x` |
+| 用户/角色 | `user`, `users`, `user-circle` |
+| 设置/配置 | `settings`, `sliders-horizontal` |
 
 ---
 
@@ -927,15 +821,13 @@ const chartColors = {
 
 ### 可折叠区块
 
-使用 `collapsible` 组件模式：
-
 ```html
 <div class="collapsible">
-  <button class="collapsible-trigger w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-    <span class="font-medium">标题</span>
-    <svg class="lucide-icon chevron-down transition-transform duration-200"><!-- ... --></svg>
+  <button class="collapsible-trigger">
+    <span>标题</span>
+    <svg class="chevron-down"><!-- ... --></svg>
   </button>
-  <div class="collapsible-content overflow-hidden" hidden>
+  <div class="collapsible-content" hidden>
     <!-- 内容 -->
   </div>
 </div>
@@ -945,7 +837,7 @@ const chartColors = {
 
 - 滚动监听：IntersectionObserver
 - 平滑滚动：`scroll-behavior: smooth`
-- 当前项高亮：`text-primary bg-muted`
+- 当前项高亮：`data-active="true"`
 
 ### 图表交互
 
@@ -953,13 +845,24 @@ const chartColors = {
 - 图例：可点击切换
 - Mermaid 放大：Modal 组件
 
-### 代码复制
+### 主题切换
 
-```html
-<button class="copy-btn text-muted-foreground hover:text-foreground transition-colors" onclick="copyCode(this)">
-  <svg class="lucide-icon copy w-4 h-4"><!-- ... --></svg>
-  <svg class="lucide-icon check w-4 h-4 hidden"><!-- ... --></svg>
-</button>
+**必须支持**明暗主题切换：
+
+```javascript
+// 主题切换逻辑
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.classList.contains('dark');
+
+  html.classList.remove('dark', 'light');
+  html.classList.add(isDark ? 'light' : 'dark');
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+
+  // 更新图表主题
+  updateChartTheme(!isDark);
+  updateMermaidTheme(!isDark);
+}
 ```
 
 ---
@@ -971,8 +874,9 @@ const chartColors = {
 | 占位符 | 类型 | 说明 |
 |--------|------|------|
 | `__REPORT_TITLE__` | string | 报告标题 |
-| `__SIDEBAR_NAV__` | HTML | 侧边栏导航（含 Lucide 图标） |
+| `__SIDEBAR_NAV__` | HTML | 侧边栏导航 |
 | `__MD_CONTENT__` | HTML | Markdown 渲染后的主内容 |
+| `__CSS_VARIABLES__` | CSS | 从设计系统生成的 CSS 变量 |
 
 ### 可选占位符
 
@@ -990,34 +894,62 @@ const chartColors = {
 
 所有依赖通过 CDN 加载：
 
-| 库 | 版本 | 用途 |
-|----|------|------|
-| Lucide Icons | latest | 图标系统 |
-| Mermaid.js | v10 | 流程图渲染 |
-| Chart.js | latest | 数据图表 |
-| highlight.js | v11 | 代码高亮 |
+| 库 | 用途 |
+|----|------|
+| Lucide Icons | 图标系统 |
+| Mermaid.js | 流程图渲染 |
+| Chart.js | 数据图表 |
+| highlight.js | 代码高亮 |
 
 ---
 
-## 使用示例
+## 与 ui-ux-pro-max 协作示例
 
-### 示例1：需求文档转换
-
-```
-输入：DDR需求文档.md
-输出：带侧边栏导航、流程图、shadcn/ui 风格卡片的 HTML 报告
-```
-
-### 示例2：审查报告转换
+### 示例：需求文档可视化
 
 ```
-输入：review.md
-输出：带评分图表、Accordion 问题列表、状态统计的 HTML 报告
+1. 解析 Markdown 文档
+   → 提取：标题、表格、流程图
+
+2. 调用 ui-ux-pro-max
+   ```bash
+   python3 skills/ui-ux-pro-max/scripts/search.py "document report professional" --design-system -p "PRD-Doc"
+   ```
+   → 获取：配色方案、字体配对、视觉风格
+
+3. 生成 CSS 变量
+   ```css
+   :root {
+     --primary: <from design system>;
+     --font-heading: <from design system>;
+     /* ... */
+   }
+   ```
+
+4. 渲染 HTML
+   → 应用组件结构
+   → 注入样式变量
+   → 添加交互功能
 ```
 
-### 示例3：技术文档转换
+### 示例：审查报告可视化
 
 ```
-输入：api-docs.md
-输出：带代码高亮、目录导航的 HTML 文档
+1. 解析 Markdown 文档
+   → 提取：评分表格、问题列表、风险项
+
+2. 调用 ui-ux-pro-max
+   ```bash
+   python3 skills/ui-ux-pro-max/scripts/search.py "dashboard analytics review" --design-system -p "Review-Report"
+   ```
+   → 获取：数据可视化配色、图表样式
+
+3. 生成图表
+   → 评分柱状图（使用设计系统配色）
+   → 风险分布环形图
+
+4. 渲染 HTML
+   → Accordion 问题列表
+   → 图表区域
+   → 主题切换
 ```
