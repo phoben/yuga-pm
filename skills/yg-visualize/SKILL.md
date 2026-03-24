@@ -1,28 +1,34 @@
 ---
 name: yg-visualize
-description: "将Markdown文档转换为可视化HTML。⚠️ 必须先执行 extract-outline.sh 脚本获取文档元信息，禁止直接读取文档全文！"
+description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定文档路径 doc_path；2) 用Bash执行 scripts/extract-outline.sh $doc_path 获取元信息；3) 根据charCount选择模式（<30000直接处理，>=30000主从协调）；4) 生成HTML。禁止跳过步骤2直接读取文档！"
 ---
 
 # 可视化文档
 
 <HARD-GATE>
-在读取任何文档内容之前，**必须**先执行以下步骤：
-
-1. **确定 `doc_path`**
-   - 用户指定路径 → 使用该路径
-   - 用户未指定 → 检查 `.yg-pm/projects/` 目录下的项目文档
-   - 无项目上下文 → 询问用户文档路径
-
-2. **立即使用 Bash 工具执行以下命令获取文档元信息**
-
-   bash "${CLAUDE_PLUGIN_ROOT}/skills/yg-visualize/scripts/extract-outline.sh" "$doc_path"
-
-3. **根据返回的 `charCount` 决定处理模式**
-   - `< 30000` → 直接处理模式
-   - `>= 30000` → 主从协调模式
-
-**禁止跳过以上步骤直接读取文档全文！禁止使用 Search 工具查找脚本！必须直接用 Bash 工具执行命令！**
+在读取任何文档内容之前，**不得**跳过以下预处理步骤。这适用于**所有文档**，无论大小。
 </HARD-GATE>
+
+## 预处理步骤
+
+### 步骤1: 确定文档路径
+
+- 用户指定路径 → 使用该路径
+- 用户未指定 → 检查 `.yg-pm/projects/` 目录下的项目文档
+- 无项目上下文 → 询问用户文档路径
+
+### 步骤2: 执行脚本获取文档元信息
+
+**重要：脚本位于插件安装目录，使用以下命令执行：**
+
+```bash
+scripts/extract-outline.sh" "$doc_path"
+```
+
+### 步骤3: 根据返回结果选择处理模式
+
+- `charCount < 30000` → 直接处理模式
+- `charCount >= 30000` → 主从协调模式（启动多个 SubAgent 并行处理）
 
 ---
 
@@ -106,7 +112,7 @@ description: "将Markdown文档转换为可视化HTML。⚠️ 必须先执行 e
 
 ```
 步骤1.1: 获取文档信息
-├── 调用 ${CLAUDE_PLUGIN_ROOT}/skills/yg-visualize/scripts/extract-outline.sh <doc_path>
+├── 调用 scripts/extract-outline.sh <doc_path>
 ├── 获取字符数、行数、标题结构
 └── 返回 JSON 格式的文档元信息
 
