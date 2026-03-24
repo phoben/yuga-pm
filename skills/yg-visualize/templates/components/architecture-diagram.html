@@ -1,8 +1,8 @@
 <!-- Architecture Diagram Component -->
 <!-- Use for system architecture diagrams -->
 <!-- SubAgent: Replace {{arch-title}}, {{layer-label}}, {{node-name}} placeholders -->
-<!-- SubAgent: Copy .arch-layer div for multiple layers, .arch-node div for multiple nodes -->
 <!-- Node data-type: primary, secondary, database, cache, external -->
+<!-- Support for connection lines between layers -->
 
 <style>
   .architecture-diagram {
@@ -24,7 +24,7 @@
   .arch-layers {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 0;
   }
 
   .arch-layer {
@@ -94,39 +94,124 @@
     background: linear-gradient(135deg, var(--secondary), #475569);
   }
 
+  /* Connection lines between layers */
   .arch-connector {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     padding: 8px 0;
+    position: relative;
   }
 
+  .arch-connector::before {
+    content: '';
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--primary), var(--border));
+    position: absolute;
+    top: 0;
+  }
+
+  .arch-connector-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    z-index: 1;
+    background: var(--card-bg);
+    padding: 0 8px;
+  }
+
+  .arch-connector-line svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Data flow indicators */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--muted-foreground);
+    padding: 2px 8px;
+    background: var(--muted);
+    border-radius: 4px;
+  }
+
+  /* Simple connector arrow (backward compatible) */
   .arch-connector i {
     width: 24px;
     height: 24px;
     color: var(--muted-foreground);
+    z-index: 1;
+    background: var(--card-bg);
   }
 </style>
 
 <div class="architecture-diagram">
   <div class="arch-title">{{arch-title}}</div>
   <div class="arch-layers">
-    <!-- Example layer - copy this for multiple layers -->
+    <!-- Frontend Layer -->
     <div class="arch-layer">
-      <div class="layer-label">{{layer-label}}</div>
+      <div class="layer-label">前端层</div>
       <div class="layer-nodes">
-        <!-- Example node - copy this for multiple nodes in a layer -->
         <div class="arch-node" data-type="primary">
-          <i data-lucide="box"></i>
-          <span>{{node-name}}</span>
+          <i data-lucide="monitor"></i>
+          <span>Web 应用</span>
         </div>
-        <!-- End example node -->
+        <div class="arch-node" data-type="primary">
+          <i data-lucide="smartphone"></i>
+          <span>移动端</span>
+        </div>
       </div>
     </div>
-    <!-- End example layer -->
 
-    <!-- Connector between layers -->
+    <!-- Connector with flow indicator -->
     <div class="arch-connector">
-      <i data-lucide="arrow-down"></i>
+      <div class="arch-connector-line">
+        <i data-lucide="arrow-up-down"></i>
+        <span>API 调用</span>
+      </div>
+    </div>
+
+    <!-- Backend Layer -->
+    <div class="arch-layer">
+      <div class="layer-label">服务层</div>
+      <div class="layer-nodes">
+        <div class="arch-node" data-type="primary">
+          <i data-lucide="server"></i>
+          <span>API 网关</span>
+        </div>
+        <div class="arch-node" data-type="secondary">
+          <i data-lucide="cpu"></i>
+          <span>业务服务</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="arch-connector">
+      <div class="arch-connector-line">
+        <i data-lucide="arrow-up-down"></i>
+        <span>数据读写</span>
+      </div>
+    </div>
+
+    <!-- Data Layer -->
+    <div class="arch-layer">
+      <div class="layer-label">数据层</div>
+      <div class="layer-nodes">
+        <div class="arch-node" data-type="database">
+          <i data-lucide="database"></i>
+          <span>主数据库</span>
+        </div>
+        <div class="arch-node" data-type="cache">
+          <i data-lucide="hard-drive"></i>
+          <span>缓存</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
