@@ -1,12 +1,12 @@
 ---
 name: yg-visualize
-description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定文档路径 doc_path；2) 用Bash执行 scripts/extract-outline.sh $doc_path 获取元信息；3) 根据charCount选择模式（<30000直接处理，>=30000主从协调）；4) 生成HTML。禁止跳过步骤2直接读取文档！"
+description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定文档路径 doc_path；2) 用Bash执行 ${CLAUDE_SKILL_DIR}/script/extract-outline.sh $doc_path 获取元信息；3) 根据charCount选择模式（<30000直接处理，>=30000主从协调）；4) 生成HTML。禁止跳过步骤2直接读取文档！"
 ---
 
 # 可视化文档
 
 <HARD-GATE>
-在读取任何文档内容之前，**不得**跳过以下预处理步骤。这适用于**所有文档**，无论大小。
+在读取任何文档内容之前，**必须**先执行预处理脚本。这适用于**所有文档**，无论大小。**禁止**直接读取文档内容。
 </HARD-GATE>
 
 ## 预处理步骤
@@ -19,16 +19,10 @@ description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定
 
 ### 步骤2: 执行脚本获取文档元信息
 
-首先加载插件根目录环境变量，然后执行脚本：
+**必须执行以下 Bash 命令**（使用 `${CLAUDE_SKILL_DIR}` 变量引用技能目录中的脚本）：
 
 ```bash
-# 加载插件根目录路径
-if [ -f /tmp/yg-pm-plugin-root.env ]; then
-  source /tmp/yg-pm-plugin-root.env
-fi
-
-# 执行脚本
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/extract-outline.sh" "$doc_path"
+bash "${CLAUDE_SKILL_DIR}/script/extract-outline.sh" "$doc_path"
 ```
 
 ### 步骤3: 根据返回结果选择处理模式
@@ -449,7 +443,7 @@ skills/yg-visualize/
 ├── SKILL.md                    # 主技能文件
 ├── agents/
 │   └── visualize-page.md       # 页面片段生成Agent
-├── scripts/
+├── script/
 │   └── extract-outline.sh      # 提取文档层级结构脚本
 └── references/
     ├── yg-create-html.md       # HTML生成规范
