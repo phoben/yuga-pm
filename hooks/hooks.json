@@ -1,5 +1,14 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [{
+          "type": "command",
+          "command": "bash -c 'echo \"CLAUDE_PLUGIN_ROOT=${CLAUDE_PLUGIN_ROOT}\" > /tmp/yg-pm-plugin-root.env'",
+          "timeout": 5000
+        }]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Skill.*yg-",

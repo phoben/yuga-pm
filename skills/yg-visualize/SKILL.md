@@ -19,7 +19,15 @@ description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定
 
 ### 步骤2: 执行脚本获取文档元信息
 
+首先加载插件根目录环境变量，然后执行脚本：
+
 ```bash
+# 加载插件根目录路径
+if [ -f /tmp/yg-pm-plugin-root.env ]; then
+  source /tmp/yg-pm-plugin-root.env
+fi
+
+# 执行脚本
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/extract-outline.sh" "$doc_path"
 ```
 
