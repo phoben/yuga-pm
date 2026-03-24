@@ -19,9 +19,7 @@ description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定
 
 ### 步骤2: 执行脚本获取文档元信息
 
-**重要：脚本位于插件安装目录，使用以下命令执行：**
-
-```bash
+```
 scripts/extract-outline.sh" "$doc_path"
 ```
 
