@@ -469,21 +469,43 @@ flowchart LR
 
 ### 链式调用询问
 
-在会话摘要之后，**必须**输出以下询问：
+在会话摘要之后，**必须**使用 AskUserQuestion 工具询问用户是否需要可视化报告：
 
+```json
+{
+  "questions": [{
+    "question": "是否需要创建包含 Mermaid 流程图和 Chart.js 图表的 HTML 可视化报告？",
+    "header": "可视化",
+    "multiSelect": false,
+    "options": [
+      { "label": "生成HTML报告（推荐）", "description": "自动调用 yg-visualize 技能生成可视化报告" },
+      { "label": "暂不需要", "description": "仅保留 Markdown 报告" }
+    ]
+  }]
+}
 ```
----
 
-💡 是否需要创建包含 Mermaid 流程图和 Chart.js 图表的 HTML 可视化报告？
-   回复"是"、"需要"或"好"将自动调用`yg-visualize`技能生成。
-```
-
-如果用户同意（回复包含"是"、"需要"、"好"等肯定词），使用 `Skill` 工具调用 `yg-visualize` 技能，参数如下：
+如果用户选择生成 HTML 报告，使用 `Skill` 工具调用 `yg-visualize` 技能，参数如下：
 
 ```
 skill: yg-visualize
 args: 将 "[文档目录]/需求审查报告_[项目名称]_[日期].md" 转换为 HTML 可视化报告，输出到 "[文档目录]/需求审查报告_[项目名称]_[日期].html"
 ```
+
+---
+
+## 交互式提问规范
+
+**涉及用户交互时必须使用 AskUserQuestion 工具**，遵循以下原则：
+
+| 原则 | 说明 |
+|-----|------|
+| **一次一问** | 每次只提出一个问题，等待用户回答后再继续 |
+| **提供选项** | 为每个问题提供 2-4 个预设选项 |
+| **保留自定义** | 依靠"其他"选项让用户自由表达 |
+| **单选为主** | 大多数情况使用单选（multiSelect: false） |
+
+---
 
 ### 问题收集格式（内部生成用）
 

@@ -154,15 +154,72 @@ updated: YYYY-MM-DD
 
 **输出确认**：
 
-```
-调研意图确认：
-- 行业领域：{行业}
-- 系统类型：{系统}
-- 调研方向：{方向}
-- 输出格式：{格式}
+使用 AskUserQuestion 工具确认调研意图：
 
-是否正确？确认后开始调研。
+```json
+{
+  "questions": [{
+    "question": "请确认调研意图：行业「{行业}」，系统「{系统}」，方向「{方向}」是否正确？",
+    "header": "意图确认",
+    "multiSelect": false,
+    "options": [
+      { "label": "确认开始调研", "description": "开始执行调研流程" },
+      { "label": "修改调研范围", "description": "调整行业/系统/方向参数" },
+      { "label": "更换输出格式", "description": "调整报告格式要求" }
+    ]
+  }]
+}
 ```
+
+---
+
+## 交互式提问规范
+
+**涉及用户交互时必须使用 AskUserQuestion 工具**，遵循以下原则：
+
+| 原则 | 说明 |
+|-----|------|
+| **一次一问** | 每次只提出一个问题，等待用户回答后再继续 |
+| **提供选项** | 为每个问题提供 2-4 个预设选项 |
+| **保留自定义** | 依靠"其他"选项让用户自由表达 |
+| **单选为主** | 大多数情况使用单选（multiSelect: false） |
+
+### 调研方向确认示例
+
+```json
+{
+  "questions": [{
+    "question": "您希望重点调研哪个方向？",
+    "header": "调研方向",
+    "multiSelect": false,
+    "options": [
+      { "label": "业务流程", "description": "核心业务流程、操作流程、审批流程" },
+      { "label": "技术架构", "description": "系统架构、技术选型、集成方案" },
+      { "label": "最佳实践", "description": "行业标杆、成功案例、常见问题" },
+      { "label": "全面调研", "description": "覆盖以上所有维度" }
+    ]
+  }]
+}
+```
+
+### 输出格式确认示例
+
+```json
+{
+  "questions": [{
+    "question": "您需要什么格式的调研报告？",
+    "header": "输出格式",
+    "multiSelect": false,
+    "options": [
+      { "label": "概要报告", "description": "核心要点，适合快速了解" },
+      { "label": "详细报告（推荐）", "description": "完整分析，适合深入研究" },
+      { "label": "对比分析", "description": "多方案对比，适合决策参考" }
+    ]
+  }]
+}
+```
+
+---
 
 ### 2. 知识库检索
 

@@ -234,35 +234,90 @@ UI库: shadcn/ui（基于Radix UI）
 
 ### 环境不满足时的处理策略
 
-**策略1：引导安装**
-```
-检测到缺少必要环境：
-- Node.js 版本过低（当前 v16，需要 v18+）
-- 建议执行：nvm install 18 && nvm use 18
+**使用 AskUserQuestion 工具让用户选择处理方案：**
 
-是否继续使用当前环境？（可能存在兼容性问题）
-[继续] [安装新版本] [更换技术栈]
+**策略1：引导安装**
+
+```json
+{
+  "questions": [{
+    "question": "检测到缺少必要环境：Node.js 版本过低。如何处理？",
+    "header": "环境处理",
+    "multiSelect": false,
+    "options": [
+      { "label": "安装新版本", "description": "执行 nvm install 18 安装 Node.js 18+" },
+      { "label": "继续使用", "description": "继续使用当前环境（可能存在兼容性问题）" },
+      { "label": "更换技术栈", "description": "切换到不依赖 Node.js 的 HTML+CSS 方案" }
+    ]
+  }]
+}
 ```
 
 **策略2：降级方案**
-```
-检测到缺少 shadcn/ui MCP：
-- 方案A：安装 shadcn/ui MCP（推荐）
-- 方案B：使用 HTML + CSS 原生方式
 
-请选择：
-[安装MCP] [使用HTML方案]
+```json
+{
+  "questions": [{
+    "question": "检测到缺少 shadcn/ui MCP，如何处理？",
+    "header": "MCP处理",
+    "multiSelect": false,
+    "options": [
+      { "label": "安装MCP（推荐）", "description": "按照提示安装 shadcn/ui MCP" },
+      { "label": "使用HTML方案", "description": "切换到 HTML + CSS 原生方式" },
+      { "label": "跳过检查", "description": "强制使用当前技术栈（可能失败）" }
+    ]
+  }]
+}
 ```
 
 **策略3：技术栈替换**
-```
-当前环境不支持 React + Element UI：
-- 缺少 Node.js 环境
-- 建议更换为：HTML + CSS 原生方式
 
-是否更换技术栈？
-[更换] [取消]
+```json
+{
+  "questions": [{
+    "question": "当前环境不支持 React + Element UI，是否更换技术栈？",
+    "header": "技术栈",
+    "multiSelect": false,
+    "options": [
+      { "label": "更换为HTML+CSS", "description": "使用原生 HTML + CSS，无需依赖环境" },
+      { "label": "取消操作", "description": "等待环境准备就绪后再进行" }
+    ]
+  }]
+}
 ```
+
+---
+
+## 交互式提问规范
+
+**涉及用户交互时必须使用 AskUserQuestion 工具**，遵循以下原则：
+
+| 原则 | 说明 |
+|-----|------|
+| **一次一问** | 每次只提出一个问题，等待用户回答后再继续 |
+| **提供选项** | 为每个问题提供 2-4 个预设选项 |
+| **保留自定义** | 依靠"其他"选项让用户自由表达 |
+| **单选为主** | 大多数情况使用单选（multiSelect: false） |
+
+### 技术栈确认示例
+
+```json
+{
+  "questions": [{
+    "question": "请选择原型技术栈：",
+    "header": "技术栈",
+    "multiSelect": false,
+    "options": [
+      { "label": "React + Element UI（推荐）", "description": "后台管理系统首选，组件丰富" },
+      { "label": "React + shadcn/ui", "description": "现代轻量，快速搭建" },
+      { "label": "HTML + CSS", "description": "无依赖，即开即用，适合单页面" },
+      { "label": "Taro + Ant Design Mini", "description": "小程序跨端方案" }
+    ]
+  }]
+}
+```
+
+---
 
 ## 交付物模板
 
