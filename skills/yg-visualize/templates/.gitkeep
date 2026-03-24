@@ -1,0 +1,7 @@
+# Template Directory
+
+This directory contains HTML templates for the yg-visualize skill.
+
+## Structure
+
+- `components/` - Reusable HTML component templates
