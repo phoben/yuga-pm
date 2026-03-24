@@ -235,7 +235,7 @@ skills/yg-visualize/
 |-----|------|
 | `templates/framework-light.html` | 亮色框架模板 |
 | `templates/framework-dark.html` | 暗色框架模板 |
-| `templates/components/*.html` | 13 个组件模板文件 |
+| `templates/components/*.html` | 11 个组件模板文件 |
 
 ### 修改文件
 
@@ -258,7 +258,7 @@ skills/yg-visualize/
 
 - [ ] SKILL.md 行数控制在 300 行以内
 - [ ] 框架模板包含完整的导航、内容区、交互脚本
-- [ ] 13 个组件模板文件创建完成
+- [ ] 11 个组件模板文件创建完成
 - [ ] 文档校验功能正常工作
 - [ ] SubAgent 能正确读取模板并填充区域
 - [ ] 5 万字符文档处理成功，无超时
