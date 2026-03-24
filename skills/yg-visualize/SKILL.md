@@ -13,16 +13,15 @@ description: "将Markdown文档转换为可视化HTML。⚠️ 必须先执行 e
    - 用户未指定 → 检查 `.yg-pm/projects/` 目录下的项目文档
    - 无项目上下文 → 询问用户文档路径
 
-2. **执行脚本获取文档元信息**
-   ```bash
-   bash "${CLAUDE_PLUGIN_ROOT}/skills/yg-visualize/scripts/extract-outline.sh" "$doc_path"
-   ```
+2. **立即使用 Bash 工具执行以下命令获取文档元信息**
 
-3. **根据 `charCount` 决定处理模式**
+   bash "${CLAUDE_PLUGIN_ROOT}/skills/yg-visualize/scripts/extract-outline.sh" "$doc_path"
+
+3. **根据返回的 `charCount` 决定处理模式**
    - `< 30000` → 直接处理模式
    - `>= 30000` → 主从协调模式
 
-**禁止跳过以上步骤直接读取文档全文！**
+**禁止跳过以上步骤直接读取文档全文！禁止使用 Search 工具查找脚本！必须直接用 Bash 工具执行命令！**
 </HARD-GATE>
 
 ---
