@@ -42,7 +42,7 @@ description: 查询活字格官方知识库帮助文档
 
 ## 脚本文件
 
-- `${CLAUDE_PLUGIN_ROOT}/script/ai_search.py`
+${CLAUDE_PLUGIN_ROOT}/scripts/ai_search.py
 
 ## 功能说明
 
