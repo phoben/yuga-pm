@@ -1,0 +1,139 @@
+<!-- Accordion Component -->
+<!-- Use for issues/risks with priority levels -->
+<!-- SubAgent: Replace {{priority}}, {{accordion-title}}, {{accordion-content}} placeholders -->
+<!-- SubAgent: Copy .accordion-item div for multiple items -->
+<!-- Priority classes: priority-critical, priority-high, priority-medium, priority-low -->
+<!-- Status classes: status-complete, status-inprogress, status-pending -->
+
+<style>
+  .accordion-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .accordion-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .accordion-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+  }
+
+  .accordion-header:hover {
+    background: var(--muted);
+  }
+
+  .accordion-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .accordion-badge.priority-critical {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+
+  .accordion-badge.priority-high {
+    background: rgba(249, 115, 22, 0.15);
+    color: #f97316;
+  }
+
+  .accordion-badge.priority-medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  .accordion-badge.priority-low {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+  }
+
+  .accordion-badge.status-complete {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+  }
+
+  .accordion-badge.status-inprogress {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+  }
+
+  .accordion-badge.status-pending {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+  }
+
+  .accordion-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  .accordion-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--muted-foreground);
+    transition: transform 0.2s;
+  }
+
+  .accordion-item[data-open="true"] .accordion-icon {
+    transform: rotate(180deg);
+  }
+
+  .accordion-body {
+    padding: 0 20px 16px;
+    font-size: 14px;
+    color: var(--muted-foreground);
+    line-height: 1.6;
+    display: none;
+  }
+
+  .accordion-item[data-open="true"] .accordion-body {
+    display: block;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 0;
+  }
+
+  .accordion-body ul,
+  .accordion-body ol {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+
+  .accordion-body li {
+    margin-bottom: 4px;
+  }
+</style>
+
+<div class="accordion-container">
+  <!-- Example accordion item - copy this for multiple items -->
+  <div class="accordion-item" data-open="false">
+    <div class="accordion-header" onclick="this.parentElement.toggleAttribute('data-open')">
+      <span class="accordion-badge priority-high">{{priority}}</span>
+      <span class="accordion-title">{{accordion-title}}</span>
+      <i data-lucide="chevron-down" class="accordion-icon"></i>
+    </div>
+    <div class="accordion-body">
+      {{accordion-content}}
+    </div>
+  </div>
+  <!-- End example accordion item -->
+</div>

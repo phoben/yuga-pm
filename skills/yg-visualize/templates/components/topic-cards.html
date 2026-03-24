@@ -1,0 +1,98 @@
+<!-- Topic Cards Component -->
+<!-- Use for numbered topics with titles and content -->
+<!-- SubAgent: Replace {{topic-title}}, {{topic-badge}}, {{topic-content}} placeholders -->
+<!-- SubAgent: Copy .topic-card div for multiple topics -->
+
+<style>
+  .topic-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .topic-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .topic-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .topic-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .topic-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 50%;
+  }
+
+  .topic-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  .topic-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 12px;
+  }
+
+  .topic-body {
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--muted-foreground);
+    line-height: 1.6;
+  }
+
+  .topic-body ul,
+  .topic-body ol {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+
+  .topic-body li {
+    margin-bottom: 4px;
+  }
+</style>
+
+<div class="topic-cards-container">
+  <!-- Example topic item - copy this for multiple topics -->
+  <div class="topic-card">
+    <div class="topic-header">
+      <div class="topic-header-left">
+        <span class="topic-num">1</span>
+        <span class="topic-title">{{topic-title}}</span>
+      </div>
+      <span class="topic-badge">{{topic-badge}}</span>
+    </div>
+    <div class="topic-body">
+      {{topic-content}}
+    </div>
+  </div>
+  <!-- End example topic item -->
+</div>

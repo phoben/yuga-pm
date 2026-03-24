@@ -1,0 +1,72 @@
+<!-- Step Cards Component -->
+<!-- Use for ordered steps with sequential dependencies -->
+<!-- SubAgent: Replace {{step-title}} and {{step-desc}} placeholders -->
+<!-- SubAgent: Copy .step-card div for multiple steps -->
+
+<style>
+  .step-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .step-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+  }
+
+  .step-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 50%;
+  }
+
+  .step-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .step-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  .step-desc {
+    font-size: 14px;
+    color: var(--muted-foreground);
+    line-height: 1.5;
+  }
+</style>
+
+<div class="step-cards-container">
+  <!-- Example step item - copy this for multiple steps -->
+  <div class="step-card">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">{{step-title}}</div>
+      <div class="step-desc">{{step-desc}}</div>
+    </div>
+  </div>
+  <!-- End example step item -->
+</div>

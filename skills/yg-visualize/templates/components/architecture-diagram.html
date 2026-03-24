@@ -1,0 +1,132 @@
+<!-- Architecture Diagram Component -->
+<!-- Use for system architecture diagrams -->
+<!-- SubAgent: Replace {{arch-title}}, {{layer-label}}, {{node-name}} placeholders -->
+<!-- SubAgent: Copy .arch-layer div for multiple layers, .arch-node div for multiple nodes -->
+<!-- Node data-type: primary, secondary, database, cache, external -->
+
+<style>
+  .architecture-diagram {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    overflow-x: auto;
+  }
+
+  .arch-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .arch-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .arch-layer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .layer-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-left: 4px;
+  }
+
+  .layer-nodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .arch-node {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    min-width: 140px;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .arch-node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .arch-node i {
+    width: 18px;
+    height: 18px;
+  }
+
+  .arch-node[data-type="primary"] {
+    background: linear-gradient(135deg, var(--primary), #2563eb);
+  }
+
+  .arch-node[data-type="secondary"] {
+    background: linear-gradient(135deg, var(--chart-color-5, #8b5cf6), #7c3aed);
+  }
+
+  .arch-node[data-type="database"] {
+    background: linear-gradient(135deg, var(--chart-color-2, #10b981), #059669);
+  }
+
+  .arch-node[data-type="cache"] {
+    background: linear-gradient(135deg, var(--chart-color-3, #f59e0b), #d97706);
+  }
+
+  .arch-node[data-type="external"] {
+    background: linear-gradient(135deg, var(--secondary), #475569);
+  }
+
+  .arch-connector {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+  }
+
+  .arch-connector i {
+    width: 24px;
+    height: 24px;
+    color: var(--muted-foreground);
+  }
+</style>
+
+<div class="architecture-diagram">
+  <div class="arch-title">{{arch-title}}</div>
+  <div class="arch-layers">
+    <!-- Example layer - copy this for multiple layers -->
+    <div class="arch-layer">
+      <div class="layer-label">{{layer-label}}</div>
+      <div class="layer-nodes">
+        <!-- Example node - copy this for multiple nodes in a layer -->
+        <div class="arch-node" data-type="primary">
+          <i data-lucide="box"></i>
+          <span>{{node-name}}</span>
+        </div>
+        <!-- End example node -->
+      </div>
+    </div>
+    <!-- End example layer -->
+
+    <!-- Connector between layers -->
+    <div class="arch-connector">
+      <i data-lucide="arrow-down"></i>
+    </div>
+  </div>
+</div>
