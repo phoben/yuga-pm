@@ -1,6 +1,6 @@
 ---
 name: yg-visualize
-description: "将Markdown文档转换为可视化HTML。执行步骤：1) 确定文档路径；2) 执行 extract-outline.sh 获取元信息并校验；3) 根据charCount选择模式（<30000直接处理，>=30000主从协调）；4) 复制框架模板并填充内容。禁止跳过步骤2！"
+description: "将Markdown文档转换为可视化HTML。"
 ---
 
 # 可视化文档

@@ -413,4 +413,4 @@ Agent 工具调用：
 ## 下一步建议
 
 完成需求探索后，建议使用：
-- `/yg-requirement-extraction` - 将探索结果提取为规范需求文档
+- `yg-document-writing` - 根据探索结果编写规范需求文档

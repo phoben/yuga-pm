@@ -2,14 +2,6 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Skill.*yg-visualize",
-        "hooks": [{
-          "type": "command",
-          "command": "bash -c 'mkdir -p .yg-pm/scripts && cp \"${CLAUDE_PLUGIN_ROOT}/scripts/extract-outline.sh\" .yg-pm/scripts/ 2>/dev/null || true'",
-          "timeout": 5000
-        }]
-      },
-      {
         "matcher": "Skill.*yg-",
         "hooks": [{
           "type": "command",
