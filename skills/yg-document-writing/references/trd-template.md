@@ -1,5 +1,16 @@
 # 技术需求文档（TRD）模板
 
+<!--
+REQUIRED_SECTIONS:
+  - 技术背景
+  - 系统架构
+  - 接口设计
+  - 性能要求
+REVIEW_CHECKPOINTS:
+  - 技术选型合理
+  - 接口规范完整
+-->
+
 ## 文档信息
 
 **项目名称：** [项目名称]
@@ -31,18 +42,50 @@
 
 ### 2.1 整体架构
 
+> **图表要求**：必须使用**架构图**展示系统整体结构，推荐使用 Mermaid `flowchart` 语法配合 `subgraph` 分层。
+
 **架构模式：** [如：微服务/单体/混合]
 
-**架构图：**
+**系统架构图：**
+
+```mermaid
+flowchart TB
+    subgraph 客户端层
+        A1[Web端]
+        A2[移动端]
+        A3[小程序]
+    end
+
+    subgraph 网关层
+        B1[API网关]
+        B2[负载均衡]
+    end
+
+    subgraph 应用层
+        C1[服务A]
+        C2[服务B]
+        C3[服务C]
+    end
+
+    subgraph 数据层
+        D1[(MySQL)]
+        D2[(Redis)]
+        D3[(MongoDB)]
+    end
+
+    A1 & A2 & A3 --> B1
+    B1 --> B2
+    B2 --> C1 & C2 & C3
+    C1 & C2 & C3 --> D1 & D2 & D3
 ```
-[客户端层]
-    ↓
-[应用层]
-    ↓
-[服务层]
-    ↓
-[数据层]
-```
+
+**架构说明：**
+| 层级 | 组件 | 职责说明 |
+|------|------|---------|
+| 客户端层 | Web/移动端/小程序 | 用户交互入口 |
+| 网关层 | API网关/负载均衡 | 请求路由、限流、鉴权 |
+| 应用层 | 微服务集群 | 业务逻辑处理 |
+| 数据层 | 数据库/缓存 | 数据持久化与缓存 |
 
 ### 2.2 技术栈
 
@@ -89,6 +132,27 @@
 ### 3.2 核心接口
 
 #### 3.2.1 [接口分组1]
+
+> **图表要求**：对于复杂的接口调用流程，推荐使用**时序图**展示，使用 Mermaid `sequenceDiagram` 语法。
+
+**接口时序图：**
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as 客户端
+    participant G as API网关
+    participant S as 业务服务
+    participant D as 数据库
+
+    C->>G: 发起请求
+    G->>G: 鉴权验证
+    G->>S: 转发请求
+    S->>D: 数据操作
+    D-->>S: 返回数据
+    S-->>G: 业务响应
+    G-->>C: 返回结果
+```
 
 **接口1：[接口名称]**
 - **URL：** `/api/v1/[path]`
@@ -159,9 +223,96 @@
 - FOREIGN KEY ([字段]) REFERENCES [关联表]([字段])
 
 ### 4.3 数据关系
+
 [描述表之间的关系]
 
-### 4.4 数据迁移
+### 4.4 数据ER图
+
+#### 实体关系图
+
+```mermaid
+erDiagram
+    %% 示例：用户订单系统ER图
+    USER ||--o{ ORDER : places
+    USER {
+        bigint id PK "用户ID"
+        varchar username "用户名"
+        varchar email UK "邮箱"
+        varchar password "密码(加密)"
+        tinyint status "状态:0禁用1启用"
+        datetime created_at "创建时间"
+        datetime updated_at "更新时间"
+    }
+
+    ORDER ||--|{ ORDER_ITEM : contains
+    ORDER {
+        bigint id PK "订单ID"
+        bigint user_id FK "用户ID"
+        varchar order_no UK "订单号"
+        decimal total_amount "总金额"
+        tinyint status "状态:0待付1已付2已发货3已完成4已取消"
+        datetime created_at "创建时间"
+        datetime updated_at "更新时间"
+    }
+
+    PRODUCT ||--o{ ORDER_ITEM : "ordered in"
+    PRODUCT {
+        bigint id PK "商品ID"
+        varchar name "商品名称"
+        decimal price "单价"
+        int stock "库存"
+        bigint category_id FK "分类ID"
+        datetime created_at "创建时间"
+    }
+
+    ORDER_ITEM {
+        bigint id PK "明细ID"
+        bigint order_id FK "订单ID"
+        bigint product_id FK "商品ID"
+        int quantity "数量"
+        decimal unit_price "单价"
+        decimal subtotal "小计"
+    }
+
+    CATEGORY ||--o{ PRODUCT : belongs_to
+    CATEGORY {
+        bigint id PK "分类ID"
+        varchar name "分类名称"
+        bigint parent_id FK "父分类ID"
+        int sort_order "排序"
+    }
+```
+
+#### 实体说明
+
+| 实体名称 | 中文名称 | 说明 | 预估数据量 | 增长速度 |
+|---------|---------|------|-----------|---------|
+| USER | 用户表 | 存储用户基本信息 | 约[X]万 | [X]条/日 |
+| ORDER | 订单表 | 存储订单主信息 | 约[X]万 | [X]条/日 |
+| PRODUCT | 商品表 | 存储商品信息 | 约[X]万 | 较稳定 |
+| ORDER_ITEM | 订单明细表 | 存储订单商品明细 | 约[X]万 | [X]条/日 |
+| CATEGORY | 分类表 | 商品分类 | 约[X]百 | 较稳定 |
+
+#### 关系说明
+
+| 关系名称 | 源实体 | 目标实体 | 关系类型 | 外键字段 | 说明 |
+|---------|--------|---------|---------|---------|------|
+| 下单 | USER | ORDER | 1:N | user_id | 用户可下多个订单 |
+| 包含 | ORDER | ORDER_ITEM | 1:N | order_id | 订单包含多个明细 |
+| 购买 | PRODUCT | ORDER_ITEM | 1:N | product_id | 商品可出现在多个明细 |
+| 属于 | CATEGORY | PRODUCT | 1:N | category_id | 分类下有多个商品 |
+
+#### 索引设计
+
+| 表名 | 索引名 | 索引类型 | 字段 | 说明 |
+|------|--------|---------|------|------|
+| USER | uk_email | 唯一索引 | email | 邮箱唯一 |
+| ORDER | idx_user_id | 普通索引 | user_id | 按用户查询订单 |
+| ORDER | idx_created_at | 普通索引 | created_at | 按时间查询 |
+| ORDER_ITEM | idx_order_id | 普通索引 | order_id | 按订单查询明细 |
+| PRODUCT | idx_category_id | 普通索引 | category_id | 按分类查询商品 |
+
+### 4.5 数据迁移
 [说明数据迁移策略和脚本]
 
 ---
@@ -304,21 +455,56 @@
 
 ### 9.1 环境规划
 
+> **图表要求**：必须使用**网络拓扑图**展示部署架构，推荐使用 Mermaid `flowchart` 语法。
+
+**部署架构图：**
+
+```mermaid
+flowchart TB
+    subgraph 互联网
+        User[用户]
+    end
+
+    subgraph DMZ区
+        LB[负载均衡<br/>Nginx]
+        FW[防火墙]
+    end
+
+    subgraph 应用区
+        App1[应用服务器1]
+        App2[应用服务器2]
+    end
+
+    subgraph 数据区
+        Master[(主数据库)]
+        Slave[(从数据库)]
+        Redis[(Redis缓存)]
+    end
+
+    User --> FW
+    FW --> LB
+    LB --> App1 & App2
+    App1 & App2 --> Master & Redis
+    Master --> Slave
+```
+
+**环境配置表：**
+
 **开发环境（DEV）：**
-- 用途：[说明]
-- 配置：[说明]
+- **用途：** [说明]
+- **配置：** [说明]
 
 **测试环境（TEST）：**
-- 用途：[说明]
-- 配置：[说明]
+- **用途：** [说明]
+- **配置：** [说明]
 
 **预发布环境（STAGING）：**
-- 用途：[说明]
-- 配置：[说明]
+- **用途：** [说明]
+- **配置：** [说明]
 
 **生产环境（PROD）：**
-- 用途：[说明]
-- 配置：[说明]
+- **用途：** [说明]
+- **配置：** [说明]
 
 ### 9.2 部署流程
 

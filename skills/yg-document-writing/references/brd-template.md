@@ -1,5 +1,14 @@
 # 业务需求文档（BRD）模板
 
+<!--
+REQUIRED_SECTIONS:
+  - 业务背景
+  - 成功标准
+REVIEW_CHECKPOINTS:
+  - ROI论证清晰
+  - 范围边界明确
+-->
+
 ## 文档信息
 
 **项目名称：** [项目名称]

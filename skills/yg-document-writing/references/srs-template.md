@@ -1,5 +1,16 @@
 # 项目需求说明书（SRS）模板
 
+<!--
+REQUIRED_SECTIONS:
+  - 项目概述
+  - 功能需求
+  - 非功能需求
+  - 系统接口
+REVIEW_CHECKPOINTS:
+  - 需求可测试
+  - 边界条件明确
+-->
+
 ## 文档信息
 
 **项目名称：** [项目名称]
@@ -83,14 +94,23 @@
 
 ### 3.2 业务流程
 
+> **图表要求**：必须使用**流程图**展示业务流程，推荐使用 Mermaid `flowchart` 语法。应同时展示当前流程和期望流程以便对比。
+
 **当前流程：**
-```
-步骤1 → 步骤2 → 步骤3 → 步骤4
+
+```mermaid
+flowchart LR
+    A[步骤1] --> B[步骤2] --> C[步骤3] --> D[步骤4]
 ```
 
 **期望流程：**
-```
-步骤1 → 步骤2 → 步骤3 → 步骤4
+
+```mermaid
+flowchart LR
+    A[步骤1] --> B[步骤2] --> C[步骤3] --> D[完成]
+    B --> E{异常处理}
+    E -->|路径A| C
+    E -->|路径B| F[人工介入]
 ```
 
 **流程改进点：**
@@ -134,8 +154,19 @@
 - 规则2：[描述]
 
 **功能流程：**
-```
-开始 → 步骤1 → 步骤2 → 步骤3 → 结束
+
+> **图表要求**：必须使用**流程图**展示功能执行流程，推荐使用 Mermaid `flowchart` 语法。
+
+```mermaid
+flowchart TD
+    A([开始]) --> B[用户输入]
+    B --> C{数据验证}
+    C -->|通过| D[业务处理]
+    C -->|失败| E[错误提示]
+    D --> F[保存数据]
+    F --> G[返回结果]
+    E --> B
+    G --> H([结束])
 ```
 
 **输入/输出：**
@@ -202,7 +233,67 @@
 - 关系1：[说明]
 - 关系2：[说明]
 
-### 5.4 数据迁移
+### 5.4 数据ER图
+
+#### 实体关系图
+
+```mermaid
+erDiagram
+    %% 示例：用户订单系统ER图
+    USER ||--o{ ORDER : places
+    USER {
+        bigint id PK "用户ID"
+        varchar username "用户名"
+        varchar email UK "邮箱"
+        tinyint status "状态"
+        datetime created_at "创建时间"
+    }
+
+    ORDER ||--|{ ORDER_ITEM : contains
+    ORDER {
+        bigint id PK "订单ID"
+        bigint user_id FK "用户ID"
+        varchar order_no UK "订单号"
+        decimal total_amount "总金额"
+        tinyint status "状态"
+        datetime created_at "创建时间"
+    }
+
+    PRODUCT ||--o{ ORDER_ITEM : "ordered in"
+    PRODUCT {
+        bigint id PK "商品ID"
+        varchar name "商品名称"
+        decimal price "单价"
+        int stock "库存"
+    }
+
+    ORDER_ITEM {
+        bigint id PK "明细ID"
+        bigint order_id FK "订单ID"
+        bigint product_id FK "商品ID"
+        int quantity "数量"
+        decimal unit_price "单价"
+    }
+```
+
+#### 实体说明
+
+| 实体名称 | 中文名称 | 说明 | 数据量级 | 增长速度 |
+|---------|---------|------|---------|---------|
+| USER | 用户 | 系统用户信息 | 约[X]万 | [X]条/日 |
+| ORDER | 订单 | 用户订单记录 | 约[X]万 | [X]条/日 |
+| PRODUCT | 商品 | 商品基础信息 | 约[X]万 | 较稳定 |
+| ORDER_ITEM | 订单明细 | 订单商品明细 | 约[X]万 | [X]条/日 |
+
+#### 关系说明
+
+| 关系名称 | 源实体 | 目标实体 | 关系类型 | 说明 |
+|---------|--------|---------|---------|------|
+| 下单 | USER | ORDER | 1:N | 一个用户可下多个订单 |
+| 包含 | ORDER | ORDER_ITEM | 1:N | 一个订单包含多个明细 |
+| 购买 | PRODUCT | ORDER_ITEM | 1:N | 一个商品可在多个明细中 |
+
+### 5.5 数据迁移
 
 **迁移数据：**
 - [数据1]
@@ -339,6 +430,34 @@
 
 ### 9.1 硬件环境
 
+> **图表要求**：推荐使用**网络拓扑图**展示系统部署结构，使用 Mermaid `flowchart` 语法。
+
+**系统部署拓扑图：**
+
+```mermaid
+flowchart TB
+    subgraph 用户接入
+        U[用户终端]
+    end
+
+    subgraph 网络层
+        FW[防火墙]
+        LB[负载均衡]
+    end
+
+    subgraph 应用服务
+        App[应用服务器]
+    end
+
+    subgraph 数据服务
+        DB[(数据库服务器)]
+        Cache[(缓存服务器)]
+    end
+
+    U --> FW --> LB --> App
+    App --> DB & Cache
+```
+
 **服务器配置：**
 - 应用服务器：[配置]
 - 数据库服务器：[配置]
@@ -461,6 +580,38 @@
 ## 13. 项目实施
 
 ### 13.1 实施计划
+
+> **图表要求**：必须使用**甘特图**展示项目实施计划，使用 Mermaid `gantt` 语法。
+
+**项目甘特图：**
+
+```mermaid
+gantt
+    title 项目实施计划
+    dateFormat YYYY-MM-DD
+
+    section 准备阶段
+    需求确认           :a1, 2024-01-01, 7d
+    技术方案           :a2, after a1, 5d
+    环境准备           :a3, after a2, 3d
+
+    section 开发阶段
+    系统设计           :b1, after a3, 7d
+    编码开发           :b2, after b1, 21d
+    单元测试           :b3, after b2, 7d
+
+    section 测试阶段
+    集成测试           :c1, after b3, 7d
+    系统测试           :c2, after c1, 5d
+    性能测试           :c3, after c2, 5d
+
+    section 上线阶段
+    用户培训           :d1, after c3, 3d
+    试运行             :d2, after d1, 7d
+    正式上线           :milestone, after d2, 0d
+```
+
+**阶段详细说明：**
 
 **阶段1：准备阶段（X周）**
 - [ ] 需求确认
