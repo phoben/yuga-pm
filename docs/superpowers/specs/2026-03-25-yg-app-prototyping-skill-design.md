@@ -2,7 +2,38 @@
 
 **Date:** 2026-03-25
 **Author:** Claude + User
-**Status:** Approved
+**Status:** Draft (Pending Review Fixes)
+**Version:** 1.1
+
+---
+
+## SKILL.md Frontmatter (Reference)
+
+The actual `SKILL.md` file should include this YAML frontmatter:
+
+```yaml
+---
+name: yg-app-prototyping
+description: |
+  Generate functional application prototypes from requirements documents.
+  Supports Next.js + shadcn/ui, React + Element UI, Vue + Element Plus, Taro.
+  Uses Agent Team for parallel development with code review gates.
+  Triggers: "应用原型", "代码原型", "功能原型", "可运行原型", "application prototype"
+license: MIT
+metadata:
+  author: yuga-pm
+  version: "1.0.0"
+  supports_tech_stacks:
+    - nextjs-shadcn
+    - react-element
+    - vue-element
+    - taro-miniprogram
+  relation_to_yg_prototyping: |
+    yg-prototyping: Generates static HTML prototypes for quick validation
+    yg-app-prototyping: Generates functional code projects for development
+    Use yg-app-prototyping when you need runnable code with components, routing, and state.
+---
+```
 
 ---
 
@@ -39,48 +70,36 @@
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  Phase 0: Initialization                                         │
-│  ├── 1. Read/validate input documents                           │
-│  ├── 2. Detect or generate DRD                                  │
-│  ├── 3. Select tech stack (AskUserQuestion)                     │
-│  ├── 4. Setup project foundation (scaffold, mock data, styles)  │
-│  └── 5. Create task list (TaskCreate)                           │
+│  ├── 1. Environment check (Node.js, Git, GitHub CLI)            │
+│  ├── 2. Read/validate input documents                           │
+│  ├── 3. Detect or generate DRD                                  │
+│  ├── 4. Select tech stack (AskUserQuestion)                     │
+│  └── 5. Setup project foundation (scaffold, mock data, styles)  │
 │       │                                                          │
 │       ▼                                                          │
-│  Phase 1: Task Planning                                          │
+│  Phase 1: Task Planning & Development                           │
 │  ├── 1. Analyze DRD pages                                       │
 │  ├── 2. Generate page-level task documents                      │
-│  └── 3. Create branches for each page                           │
+│  ├── 3. Create task list (TaskCreate)                           │
+│  └── 4. Dispatch Coder Agents (parallel, background)            │
 │       │                                                          │
 │       ▼                                                          │
-│  Phase 2: Parallel Development                                   │
-│  ├── Dispatch Coder Agents (parallel, background)               │
-│  │   ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
-│  │   │ Coder Agent  │ │ Coder Agent  │ │ Coder Agent  │        │
-│  │   │   Page #1    │ │   Page #2    │ │   Page #N    │        │
-│  │   └──────┬───────┘ └──────┬───────┘ └──────┬───────┘        │
-│  │          │                │                │                 │
-│  │          ▼                ▼                ▼                 │
-│  │   Self-Review       Self-Review       Self-Review            │
-│  │          │                │                │                 │
-│  │          ▼                ▼                ▼                 │
-│  │   Push PR #1         Push PR #2        Push PR #N            │
-│  │          │                │                │                 │
-│  └──────────┴────────────────┴────────────────┘                 │
-│             │                                                    │
-│             ▼                                                    │
-│  Phase 3: Review & Merge                                         │
-│  ├── Dispatch Reviewer Agents for each PR                       │
-│  ├── Review PR → Feedback → Fix or Approve                      │
-│  └── Merge approved PRs to main branch                          │
+│  Phase 2: Review & Merge                                         │
+│  ├── 1. Collect PRs from completed Coder Agents                 │
+│  ├── 2. Dispatch Reviewer Agents for each PR                    │
+│  ├── 3. Review PR → Feedback → Fix or Approve                   │
+│  └── 4. Merge approved PRs to main branch                       │
 │       │                                                          │
 │       ▼                                                          │
-│  Phase 4: Integration Testing                                    │
+│  Phase 3: Integration Testing                                    │
 │  ├── Run project (npm run dev)                                  │
 │  ├── Smoke test key flows                                       │
 │  └── Report results                                             │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+**Note:** Phase numbering corrected from original (was 5 phases 0-4, now 4 phases 0-3).
 
 ### 2.2 Directory Structure
 
@@ -115,10 +134,43 @@ skills/yg-app-prototyping/
 
 | Agent | Type | Role | Tools |
 |-------|------|------|-------|
-| **Main Agent** | Orchestrator | Coordinates workflow, manages tasks, reviews results | All |
-| **Writer Agent** | Sub-agent | Generates DRD from PRD/requirements | Read, Write, Edit |
-| **Coder Agent** | Sub-agent | Generates page code, self-reviews, pushes PR | Read, Write, Edit, Bash, Agent |
-| **Reviewer Agent** | Sub-agent | Reviews PRs, provides feedback | Read, Bash, SendMessage |
+| **Main Agent** | Orchestrator | Coordinates workflow, manages tasks, reviews results | TaskCreate, TaskList, TaskUpdate, TaskOutput, Agent, SendMessage, Bash, Read, Write, Edit, AskUserQuestion |
+| **Writer Agent** | Sub-agent | Generates DRD from PRD/requirements | Read, Write, Edit, Glob, Grep |
+| **Coder Agent** | Sub-agent | Generates page code, runs linting, pushes PR | Read, Write, Edit, Glob, Grep, Bash, Agent |
+| **Reviewer Agent** | Sub-agent | Reviews PRs, provides feedback | Read, Bash, SendMessage, Glob, Grep |
+
+### 3.2 Agent Coordination Mechanism
+
+Agents communicate via the `SendMessage` tool for status updates, clarifications, and completion notifications.
+
+**Communication Flow:**
+```
+Main Agent                    Coder Agent                  Reviewer Agent
+    │                              │                              │
+    │── Agent(dispatch task) ─────→│                              │
+    │                              │                              │
+    │                              │── Agent(self-lint) ────→     │
+    │                              │                              │
+    │                              │── Bash(git push PR) ────→    │
+    │                              │                              │
+    │                              │                              │
+    │←── SendMessage(complete) ────│                              │
+    │                              │                              │
+    │── Agent(dispatch review) ───────────────────────────────────→│
+    │                              │                              │
+    │                              │←── SendMessage(feedback) ────│
+    │                              │                              │
+    │                              │── Bash(fix & push) ─────→    │
+    │                              │                              │
+    │                              │←── SendMessage(approve) ─────│
+    │                              │                              │
+    │←── SendMessage(review done) ─────────────────────────────────│
+```
+
+**Anti-Pattern:**
+- ❌ Do NOT have Coder Agent perform "self-review" - this creates conflict of interest
+- ✅ Coder Agent runs linting/formatting checks only
+- ✅ Separate Reviewer Agent handles actual code review
 
 ### 3.2 Writer Agent
 
@@ -137,7 +189,7 @@ skills/yg-app-prototyping/
 **Output:**
 - DRD document saved to `.yg-pm/projects/{project-id}/documents/DRD.md`
 
-### 3.3 Coder Agent
+### 3.4 Coder Agent
 
 **File:** `agents/page-coder.md`
 
@@ -145,8 +197,13 @@ skills/yg-app-prototyping/
 - Parse page-level task document
 - Generate page components, routes, styles
 - Create mock data for the page
-- Run self-review using `code-reviewer` agent
+- Run linting/formatting checks (NOT code review)
 - Push branch and create PR
+
+**Important Distinction:**
+- **Linting/Formatting**: Coder Agent runs `npm run lint` / `npm run format` to catch syntax and style issues
+- **Code Review**: Separate Reviewer Agent reviews code quality, architecture, and DRD alignment
+- Never combine these roles - it creates conflict of interest
 
 **Input Format:**
 ```markdown
@@ -179,9 +236,9 @@ skills/yg-app-prototyping/
 **Output:**
 - Page component code
 - Mock data
-- PR with self-review notes
+- PR with linting results
 
-### 3.4 Reviewer Agent
+### 3.5 Reviewer Agent
 
 **File:** `agents/pr-reviewer.md`
 
@@ -204,6 +261,58 @@ skills/yg-app-prototyping/
 ## 4. Master Workflow
 
 ### 4.1 Phase 0: Initialization
+
+#### Step 0.0: Environment Assessment
+
+**Environment Check List:**
+
+| Check | Command | Requirement | Handling if Failed |
+|-------|---------|-------------|-------------------|
+| Node.js | `node -v` | >= 18.0.0 | Prompt user to install Node.js 18+ |
+| Git | `git --version` | Installed | Prompt user to install Git |
+| GitHub CLI | `gh --version` | Installed | Prompt user to install gh CLI |
+| Package Manager | `pnpm -v` or `npm -v` | pnpm preferred | Use npm as fallback |
+| Remote Repository | `git remote -v` | Configured | Prompt user to configure remote |
+
+**Environment Check Flow:**
+```
+┌─────────────────────────────────────┐
+│       Check Node.js >= 18           │
+└───────────────┬─────────────────────┘
+                │
+        ┌───────┴───────┐
+        ▼               ▼
+    Pass           Fail
+        │               │
+        ▼               ▼
+┌───────────────┐  Use AskUserQuestion:
+│ Check Git     │  "Node.js 18+ required.
+└───────┬───────┘   Install now?"
+        │
+   ... (continue checks)
+```
+
+**Handling Strategies:**
+
+```json
+{
+  "questions": [{
+    "question": "Environment check failed: Node.js version is too old. How would you like to proceed?",
+    "header": "环境检查",
+    "multiSelect": false,
+    "options": [
+      { "label": "Install Node.js 18+", "description": "Run nvm install 18 to install the latest LTS" },
+      { "label": "Continue anyway", "description": "Proceed with current environment (may have issues)" },
+      { "label": "Cancel", "description": "Abort and wait for environment setup" }
+    ]
+  }]
+}
+```
+
+**Anti-Pattern:**
+- ❌ Skipping environment checks leads to cryptic errors later
+- ❌ Assuming GitHub CLI is always installed
+- ✅ Check all dependencies upfront and provide clear guidance
 
 #### Step 0.1: Document Input
 
@@ -272,6 +381,34 @@ ELSE:
 | Mobile H5 | React + Ant Design Mobile | Mobile-optimized |
 | Mini Program | Taro + Ant Design Mini | Cross-platform |
 | Simple Prototype | Next.js + shadcn/ui | Quick setup |
+
+**Relationship with yg-prototyping:**
+- `yg-prototyping`: For static HTML prototypes, quick validation, no code needed
+- `yg-app-prototyping`: For functional code projects, development-ready output
+- Use `yg-app-prototyping` when you need runnable code with components, routing, and state management
+
+**AskUserQuestion Example:**
+
+```json
+{
+  "questions": [{
+    "question": "请选择原型技术栈：",
+    "header": "技术栈",
+    "multiSelect": false,
+    "options": [
+      { "label": "Next.js + shadcn/ui (推荐)", "description": "现代全栈方案，SEO友好，适合官网/营销页" },
+      { "label": "React + Element UI", "description": "后台管理系统首选，组件丰富" },
+      { "label": "Vue + Element Plus", "description": "Vue生态后台方案，表单处理强" },
+      { "label": "Taro (小程序)", "description": "跨端小程序方案，微信/支付宝/字节跳动" }
+    ]
+  }]
+}
+```
+
+**Anti-Pattern:**
+- ❌ Assuming tech stack without user confirmation
+- ❌ Using static HTML tech for complex applications
+- ✅ Always confirm tech stack with user before proceeding
 
 #### Step 0.4: Project Setup
 
@@ -356,7 +493,35 @@ ELSE:
 - [ ] Responsive adaptation
 ```
 
-### 4.2 Phase 1: Parallel Development
+### 4.2 Phase 1: Task Planning & Development
+
+**Task Planning Flow:**
+
+1. **Extract Page List**
+   - Read all pages from DRD
+   - Mark page priorities
+   - Identify page dependencies
+
+2. **Generate Task Documents**
+   - One task document per page
+   - Save to `.yg-pm/projects/{project-id}/tasks/`
+
+3. **Create Task List**
+   - Use TaskCreate to create tasks
+   - Set task dependencies
+
+**Git Branch Strategy:**
+
+| Scenario | Branch Name Pattern | Example |
+|----------|---------------------|---------|
+| Feature page | `feature/page-{page-name}` | `feature/page-user-list` |
+| Shared component | `feature/component-{name}` | `feature/component-user-card` |
+| Bug fix | `fix/{issue-desc}` | `fix/login-validation` |
+
+**Branch Creation Timing:**
+- Branches are created by Coder Agents (not Main Agent)
+- This ensures clean branch history if Agent fails
+- Main Agent only coordinates, Coder Agents handle git operations
 
 **Parallel Development Flow:**
 
@@ -370,20 +535,23 @@ ELSE:
 │     ├── Task #2: User list                                   │
 │     └── Task #N: Settings page                               │
 │                                                               │
-│  2. Create branch for each task                              │
-│     git checkout -b feature/page-home                        │
-│     git checkout -b feature/page-users                       │
-│                                                               │
-│  3. Launch Coder Agents in parallel (background)             │
+│  2. Launch Coder Agents in parallel (background)             │
 │     ┌─────────────┐ ┌─────────────┐ ┌─────────────┐         │
 │     │ Coder #1    │ │ Coder #2    │ │ Coder #N    │         │
 │     │ Home        │ │ User List   │ │ Settings    │         │
 │     │ (background)│ │ (background)│ │ (background)│         │
+│     │             │ │             │ │             │         │
+│     │ Steps:      │ │ Steps:      │ │ Steps:      │         │
+│     │ 1. Checkout │ │ 1. Checkout │ │ 1. Checkout │         │
+│     │ 2. Code     │ │ 2. Code     │ │ 2. Code     │         │
+│     │ 3. Lint     │ │ 3. Lint     │ │ 3. Lint     │         │
+│     │ 4. Commit   │ │ 4. Commit   │ │ 4. Commit   │         │
+│     │ 5. Push PR  │ │ 5. Push PR  │ │ 5. Push PR  │         │
 │     └─────────────┘ └─────────────┘ └─────────────┘         │
 │                                                               │
-│  4. Wait for all Agents to complete                          │
-│     - Use TaskOutput to monitor progress                     │
-│     - Collect completion notifications                       │
+│  3. Monitor completion (TaskOutput / SendMessage)            │
+│     - Receive completion notifications                        │
+│     - Handle failures gracefully                             │
 │                                                               │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -391,10 +559,26 @@ ELSE:
 **Parallel Launch Example:**
 
 ```javascript
-// Launch multiple Agents in a single message
-Agent({ subagent_type: "page-coder", prompt: "...", run_in_background: true })
-Agent({ subagent_type: "page-coder", prompt: "...", run_in_background: true })
-Agent({ subagent_type: "page-coder", prompt: "...", run_in_background: true })
+// Launch multiple Agents in a single message (background mode)
+Agent({
+  subagent_type: "general-purpose",  // Uses agents/page-coder.md definition
+  description: "Generate user list page",
+  prompt: `
+    ## Task: Generate Page [User List]
+    ... task document content ...
+  `,
+  run_in_background: true
+})
+
+Agent({
+  subagent_type: "general-purpose",
+  description: "Generate settings page",
+  prompt: `
+    ## Task: Generate Page [Settings]
+    ... task document content ...
+  `,
+  run_in_background: true
+})
 ```
 
 **Agent Allocation Strategy:**
@@ -404,6 +588,11 @@ Agent({ subagent_type: "page-coder", prompt: "...", run_in_background: true })
 | 1-3 pages | All parallel | All |
 | 4-8 pages | Batch parallel | 4/batch |
 | 9+ pages | Dependency-first | 5/batch |
+
+**Anti-Pattern:**
+- ❌ Creating branches before dispatching Agents (wastes if Agent fails)
+- ❌ Running more than 5 Agents in parallel (context/memory limits)
+- ❌ Ignoring page dependencies (leads to broken builds)
 
 ### 4.3 Phase 2: Review & Merge
 
@@ -766,13 +955,32 @@ dependencies:
 
 **Error Classification & Handling:**
 
-| Error Type | Handling |
-|------------|----------|
-| Agent timeout | Reassign task with smaller scope |
-| Code generation failure | Fallback to template filling |
-| Review rejection | Feedback to Coder Agent for fixes |
-| Merge conflict | Notify Main Agent for manual handling |
-| Test failure | Generate issue report with fix suggestions |
+| Error Type | Handling | Retry Limit |
+|------------|----------|-------------|
+| Agent timeout | Reassign task with smaller scope | 2 |
+| Code generation failure | Fallback to template filling | 1 |
+| Linting failure | Auto-fix with `npm run lint -- --fix` | 1 |
+| Git push failure | Check credentials, re-auth | 1 |
+| PR creation failure | Check gh CLI, remote config | 1 |
+| Review rejection | Feedback to Coder Agent for fixes | 3 |
+| Merge conflict | Notify Main Agent for manual handling | 0 |
+| Test failure | Generate issue report with fix suggestions | 0 |
+| Dependency install failure | Try alternate package manager | 1 |
+
+**Timeout Configuration:**
+
+| Operation | Timeout | Reason |
+|-----------|---------|--------|
+| Single page code generation | 3 minutes | Complex pages |
+| Linting | 1 minute | Fast check |
+| Git operations | 30 seconds | Network dependent |
+| PR creation | 1 minute | API dependent |
+| Integration test | 5 minutes | Full project |
+
+**Anti-Pattern:**
+- ❌ Infinite retry loops without user notification
+- ❌ Ignoring merge conflicts (data loss risk)
+- ✅ Set clear timeout limits and escalation paths
 
 ### 6.4 Context Management
 
@@ -878,7 +1086,7 @@ prototypes/{project-name}/
 ### 9.1 Quality Metrics
 
 - **DRD Coverage**: All pages have corresponding components
-- **Code Quality**: Passes self-review and peer review
+- **Code Quality**: Passes linting and peer review
 - **Test Coverage**: Key flows pass smoke tests
 - **Documentation**: README covers setup and usage
 
