@@ -197,31 +197,72 @@ mindmap
 
 ### Canvas 模板
 
+**⚠️ 关键要求：画布尺寸必须根据内容动态计算，避免内容被裁剪**
+
 ```html
-<div class="canvas-blueprint">
-  <span class="canvas-blueprint-title">系统架构图</span>
-  <canvas id="blueprint-1"></canvas>
+<div class="canvas-blueprint-wrapper" style="max-height: 600px; overflow: auto; border: 1px solid var(--border); border-radius: 8px;">
+  <div class="canvas-blueprint">
+    <span class="canvas-blueprint-title">系统架构图</span>
+    <canvas id="blueprint-1"></canvas>
+  </div>
 </div>
 
 <script>
 (function() {
   const canvas = document.getElementById('blueprint-1');
   const ctx = canvas.getContext('2d');
-  // 设置画布尺寸
-  canvas.width = canvas.parentElement.offsetWidth;
-  canvas.height = 400;
 
-  // 绘制逻辑
-  // ... 自定义绘制代码
+  // 1. 定义节点数据（先声明所有元素）
+  const nodes = [
+    { id: 'node1', x: 100, y: 80, width: 140, height: 60, label: '前端应用' },
+    { id: 'node2', x: 100, y: 200, width: 140, height: 60, label: 'API 网关' },
+    // 更多节点...
+  ];
 
-  // 响应窗口大小变化
-  window.addEventListener('resize', () => {
-    canvas.width = canvas.parentElement.offsetWidth;
-    // 重绘
-  });
+  // 2. 计算内容边界（CRITICAL）
+  function calculateContentBounds() {
+    let maxX = 0, maxY = 0;
+    const padding = 40;
+    nodes.forEach(node => {
+      maxX = Math.max(maxX, node.x + node.width);
+      maxY = Math.max(maxY, node.y + node.height);
+    });
+    return {
+      width: Math.max(canvas.parentElement.offsetWidth, maxX + padding),
+      height: Math.max(300, maxY + padding)
+    };
+  }
+
+  // 3. 设置画布尺寸
+  function resize() {
+    const bounds = calculateContentBounds();
+    canvas.width = bounds.width;
+    canvas.height = bounds.height;
+    draw();
+  }
+
+  // 4. 绘制逻辑
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    nodes.forEach(node => {
+      // 绘制节点...
+    });
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
 })();
 </script>
 ```
+
+**Canvas 绘制核心原则：**
+
+| 要求 | 说明 |
+|------|------|
+| 先声明节点数据 | 确保边界计算时能遍历所有元素 |
+| 计算内容边界 | 获取最大 x+width 和 y+height |
+| 动态设置尺寸 | 不得硬编码 `canvas.height = 400` |
+| 外层滚动容器 | 使用 `max-height` + `overflow: auto` |
 
 ---
 
@@ -234,5 +275,6 @@ mindmap
 ## 10. 推荐做法
 
 - ✅ 使用 `<div class="diagram-container"><pre class="mermaid">` 包裹 Mermaid 代码
+- ✅ Mermaid 图图不添加额外标题（折叠面板标题已提供）
 - ✅ 为架构图使用 Canvas 原生绘制
 - ✅ 保持图表简洁，避免过度复杂

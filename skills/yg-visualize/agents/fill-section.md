@@ -157,6 +157,55 @@ Skill(skill: "shadcn")
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### 章节结构规则
+
+**⚠️ 关键规则：** 章节 `section-section-x` 内的内容结构必须遵循以下规则：
+
+| 场景 | 结构要求 | 示例 |
+|------|----------|------|
+| 只有 H3 子章节（无前置内容） | 直接使用 `accordion-group` 包裹所有 H3 | 见模板 |
+| 有前置内容（图表/段落）+ H3 子章节 | 前置内容在前，`accordion-group` 紧随其后 | 见混合结构示例 |
+| 无 H3 子章节 | 不使用 Accordion，直接使用 Card/图表等 | - |
+
+### 混合结构示例（图表 + H3 子章节）
+
+**当章节开头有图表，后面有 H3 子章节时：**
+
+```html
+<!-- 章节容器 -->
+<div class="space-y-6">
+  <!-- 前置图表（在 accordion-group 外部） -->
+  <div class="diagram-container">
+    <div class="diagram-title">系统架构总览</div>
+    <pre class="mermaid">
+    flowchart TD
+        A[开始] --> B[结束]
+    </pre>
+  </div>
+
+  <!-- H3 子章节必须使用 accordion-group -->
+  <div class="accordion-group">
+    <!-- 第一个 H3 -->
+    <div class="accordion-item" data-state="closed">
+      <button class="accordion-trigger" type="button">
+        <div class="accordion-trigger-icon">
+          <i data-lucide="chevron-right"></i>
+          <h3>H3 标题文本</h3>
+        </div>
+        <i data-lucide="chevron-down"></i>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-content-inner">
+          <p>H3 章节的内容...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 更多 H3 子章节... -->
+  </div>
+</div>
+```
+
 ### Accordion HTML 模板
 
 ```html
@@ -258,6 +307,33 @@ Skill(skill: "shadcn")
 | 用户相关 | `user` |
 | 通用/默认 | `chevron-right` |
 
+### 禁止事项（H3 处理）
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ❌ 绝对禁止用 Card 样式容器替代 Accordion                      │
+│                                                              │
+│ 错误示例：                                                    │
+│ <div class="rounded-lg border bg-card text-card-foreground shadow-sm">  │
+│   <h3>标题</h3>                                              │
+│   <p>内容...</p>                                             │
+│ </div>                                                       │
+│                                                              │
+│ 正确做法：                                                    │
+│ <div class="accordion-group">                                │
+│   <div class="accordion-item" data-state="closed">           │
+│     ...                                                      │
+│   </div>                                                     │
+│ </div>                                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| 禁止行为 | 正确做法 |
+|----------|----------|
+| 使用 `rounded-lg border bg-card` 作为 H3 容器 | 使用 `accordion-group` + `accordion-item` |
+| 直接用 Card 样式包裹 H3 内容 | 用 Accordion 提供折叠功能 |
+| 图表在 H3 内容外但样式与 H3 混淆 | 图表在 `accordion-group` 外，H3 在内 |
+
 ---
 
 ## 图表渲染方案选型
@@ -298,9 +374,10 @@ Skill(skill: "shadcn")
 
 ### Mermaid 渲染模板
 
+**⚠️ 注意：图表标题已在折叠面板标题中显示，无需额外添加。**
+
 ```html
 <div class="diagram-container">
-  <div class="diagram-title">图表标题</div>
   <pre class="mermaid">
 flowchart TD
     A[开始] --> B[结束]
@@ -310,6 +387,7 @@ flowchart TD
 
 **注意事项：**
 - Mermaid 代码必须放在 `<pre class="mermaid">` 标签内
+- 不添加 `.diagram-title`（折叠面板标题已提供）
 - 页面加载时 Mermaid 会自动渲染所有 `.mermaid` 元素
 - 参考 `${CLAUDE_SKILL_DIR}/references/diagram-conversion.md` 获取语法详情
 
@@ -317,10 +395,14 @@ flowchart TD
 
 适用于系统架构图、网络拓扑图等需要精确控制布局的场景：
 
+**⚠️ 关键要求：画布尺寸必须根据内容动态计算，避免内容被裁剪**
+
 ```html
-<div class="canvas-blueprint">
-  <span class="canvas-blueprint-title">系统架构图</span>
-  <canvas id="blueprint-{unique-id}"></canvas>
+<div class="canvas-blueprint-wrapper" style="max-height: 600px; overflow: auto; border: 1px solid var(--border); border-radius: 8px;">
+  <div class="canvas-blueprint">
+    <span class="canvas-blueprint-title">系统架构图</span>
+    <canvas id="blueprint-{unique-id}"></canvas>
+  </div>
 </div>
 
 <script>
@@ -328,32 +410,144 @@ flowchart TD
   const canvas = document.getElementById('blueprint-{unique-id}');
   const ctx = canvas.getContext('2d');
 
-  // 设置画布尺寸
+  // ===== 步骤1: 定义节点数据（先声明所有元素） =====
+  const nodes = [
+    { id: 'node1', x: 100, y: 80, width: 140, height: 60, label: '前端应用', type: 'primary' },
+    { id: 'node2', x: 100, y: 200, width: 140, height: 60, label: 'API 网关', type: 'secondary' },
+    { id: 'node3', x: 100, y: 320, width: 140, height: 60, label: '微服务集群', type: 'primary' },
+    // 更多节点...
+  ];
+
+  const connections = [
+    { from: 'node1', to: 'node2', label: 'HTTP' },
+    { from: 'node2', to: 'node3', label: 'gRPC' },
+  ];
+
+  // ===== 步骤2: 计算内容边界（CRITICAL） =====
+  function calculateContentBounds() {
+    let maxX = 0;
+    let maxY = 0;
+    const padding = 40; // 边距
+
+    nodes.forEach(node => {
+      const nodeRight = node.x + node.width;
+      const nodeBottom = node.y + node.height;
+      if (nodeRight > maxX) maxX = nodeRight;
+      if (nodeBottom > maxY) maxY = nodeBottom;
+    });
+
+    return {
+      width: Math.max(canvas.parentElement.offsetWidth, maxX + padding),
+      height: Math.max(300, maxY + padding) // 最小高度300px
+    };
+  }
+
+  // ===== 步骤3: 设置画布尺寸（根据内容动态计算） =====
   function resize() {
-    canvas.width = canvas.parentElement.offsetWidth;
-    canvas.height = 400;
+    const bounds = calculateContentBounds();
+    canvas.width = bounds.width;
+    canvas.height = bounds.height;
     draw();
   }
 
+  // ===== 步骤4: 绘制函数 =====
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 绘制节点、连接线等
-    // 示例：绘制一个蓝色矩形
-    ctx.fillStyle = '#3b82f6';
-    ctx.fillRect(50, 50, 120, 60);
+    // 绘制连接线
+    connections.forEach(conn => {
+      const fromNode = nodes.find(n => n.id === conn.from);
+      const toNode = nodes.find(n => n.id === conn.to);
+      drawConnection(fromNode, toNode, conn.label);
+    });
 
-    // 添加文字
+    // 绘制节点
+    nodes.forEach(node => drawNode(node));
+  }
+
+  // 绘制节点
+  function drawNode(node) {
+    const colors = {
+      primary: { fill: '#3b82f6', stroke: '#2563eb' },
+      secondary: { fill: '#6366f1', stroke: '#4f46e5' },
+      tertiary: { fill: '#10b981', stroke: '#059669' }
+    };
+    const color = colors[node.type] || colors.primary;
+
+    // 绘制圆角矩形
+    ctx.beginPath();
+    ctx.roundRect(node.x, node.y, node.width, node.height, 8);
+    ctx.fillStyle = color.fill;
+    ctx.fill();
+    ctx.strokeStyle = color.stroke;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 绘制文字
     ctx.fillStyle = '#ffffff';
     ctx.font = '14px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('服务节点', 110, 85);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(node.label, node.x + node.width / 2, node.y + node.height / 2);
   }
 
+  // 绘制连接线
+  function drawConnection(from, to, label) {
+    const startX = from.x + from.width / 2;
+    const startY = from.y + from.height;
+    const endX = to.x + to.width / 2;
+    const endY = to.y;
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 绘制箭头
+    const arrowSize = 8;
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - arrowSize, endY - arrowSize);
+    ctx.lineTo(endX + arrowSize, endY - arrowSize);
+    ctx.closePath();
+    ctx.fillStyle = '#94a3b8';
+    ctx.fill();
+
+    // 绘制标签
+    if (label) {
+      ctx.fillStyle = '#64748b';
+      ctx.font = '12px Inter, sans-serif';
+      ctx.fillText(label, (startX + endX) / 2, (startY + endY) / 2 - 8);
+    }
+  }
+
+  // 初始化
   resize();
   window.addEventListener('resize', resize);
 })();
 </script>
+```
+
+**Canvas 绘制核心原则：**
+
+| 步骤 | 要求 | 说明 |
+|------|------|------|
+| 定义节点数据 | 先声明所有元素 | 确保 `calculateContentBounds()` 能正确计算边界 |
+| 计算内容边界 | 必须 | 遍历所有节点，获取最大 x+width 和 y+height |
+| 设置画布尺寸 | 动态计算 | 使用边界值 + padding，不得硬编码固定高度 |
+| 滚动容器 | 必须 | 外层包裹 `max-height` + `overflow: auto` 的容器 |
+
+**常见错误示例：**
+
+```javascript
+// ❌ 错误：硬编码固定高度
+canvas.height = 400;
+
+// ✅ 正确：根据内容动态计算
+const bounds = calculateContentBounds();
+canvas.height = bounds.height;
 ```
 
 ---
@@ -627,9 +821,47 @@ bg-muted, text-muted-foreground
 </div>
 ```
 
-### 步骤5: 写入目标文件
+### 步骤5: 精准定位并替换章节内容
 
-**步骤 5.1: 替换整个章节内容区域（包括骨架屏和占位符）**
+**⚠️ CRITICAL: 禁止全量读取 HTML 文件，必须使用精准定位策略**
+
+#### 步骤 5.0: 使用 Grep 预定位章节占位符行号
+
+**必须先定位，再读取：**
+
+```
+Grep(
+  pattern='data-fill="section-{section_id}"',
+  path="{output_html_path}",
+  output_mode="content",
+  -n=true
+)
+```
+
+返回示例：
+```
+145:    <div class="space-y-6" data-fill="section-1" data-section-id="section-1">
+```
+
+记下行号 `145`，这是章节内容区域的起始行。
+
+#### 步骤 5.1: 使用 offset/limit 精准读取章节区域
+
+**只读取章节占位符区域（约 20 行）：**
+
+```
+Read(
+  file_path="{output_html_path}",
+  offset={grep返回的行号},
+  limit=30
+)
+```
+
+**禁止事项：**
+- ❌ 不带 offset/limit 参数的 Read
+- ❌ 读取整个 HTML 文件
+
+#### 步骤 5.2: 替换整个章节内容区域（包括骨架屏和占位符）
 
 骨架屏和占位符的完整结构：
 ```html
@@ -657,43 +889,63 @@ Edit(
 - 骨架屏容器 `<div class="skeleton-container">`
 - 占位符注释 `<!-- SUBAGENT: FILL -->`
 
-### 步骤6: 更新导航进度标记
+### 步骤6: 更新导航状态
 
-**删除导航菜单中的"编写中"标签：**
+**⚠️ CRITICAL: 同样禁止全量读取，使用 Grep 预定位导航区域**
 
-```html
-<!-- 处理前 -->
-<div class="nav-item-wrapper">
-  <a href="#section-1" class="nav-item flex-1 block px-3 py-2 rounded-md text-sm hover:bg-accent">功能概述</a>
-  <span class="nav-progress-badge" data-section="section-1">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
-    </svg>
-    编写中
-  </span>
-</div>
-
-<!-- 处理后 -->
-<div class="nav-item-wrapper">
-  <a href="#section-1" class="nav-item flex-1 block px-3 py-2 rounded-md text-sm hover:bg-accent">功能概述</a>
-</div>
-```
-
-**使用 Edit 工具删除进度标记：**
+#### 步骤 6.1: 使用 Grep 预定位导航项行号
 
 ```
-# 首先使用 Read 工具读取导航区域，找到对应章节的完整 nav-item-wrapper
-Read(file_path="{output_html_path}", offset=导航区域起始行, limit=50)
-
-# 然后使用 Edit 替换
-Edit(
-  file_path="{output_html_path}",
-  old_string='<div class="nav-item-wrapper">\n          <a href="#{section_id}" class="nav-item flex-1 block px-3 py-2 rounded-md text-sm hover:bg-accent">{章节标题}</a>\n          <span class="nav-progress-badge" data-section="{section_id}">...</span>\n        </div>',
-  new_string='<div class="nav-item-wrapper">\n          <a href="#{section_id}" class="nav-item flex-1 block px-3 py-2 rounded-md text-sm hover:bg-accent">{章节标题}</a>\n        </div>'
+Grep(
+  pattern='href="#{section_id}"',
+  path="{output_html_path}",
+  output_mode="content",
+  -n=true
 )
 ```
 
-**⚠️ 注意：** 必须先读取导航区域，获取精确的格式和缩进，再执行 Edit。
+返回示例：
+```
+45:      <a href="#section-1" class="nav-item" data-pending="true">功能概述</a>
+```
+
+记下行号 `45`。
+
+#### 步骤 6.2: 精准读取导航区域
+
+**只读取导航项附近的区域（约 10 行）：**
+
+```
+Read(
+  file_path="{output_html_path}",
+  offset={grep返回的行号 - 2},
+  limit=10
+)
+```
+
+#### 步骤 6.3: 更新导航状态
+
+**将导航项从禁用状态改为正常状态：**
+
+```html
+<!-- 处理前（禁用状态） -->
+<a href="#section-1" class="nav-item" data-pending="true">功能概述</a>
+
+<!-- 处理后（正常状态） -->
+<a href="#section-1" class="nav-item" data-pending="false">功能概述</a>
+```
+
+**使用 Edit 工具更新：**
+
+```
+Edit(
+  file_path="{output_html_path}",
+  old_string='<a href="#{section_id}" class="nav-item" data-pending="true">{章节标题}</a>',
+  new_string='<a href="#{section_id}" class="nav-item" data-pending="false">{章节标题}</a>'
+)
+```
+
+**⚠️ 注意：** 必须使用 Grep 预定位 + offset/limit 精准读取，禁止全量读取。
 
 ### 步骤7: 验证写入
 
@@ -723,7 +975,7 @@ Read(file_path="{output_html_path}", offset=目标行附近, limit=20)
 
 **完成项:**
 - ✅ 骨架屏已替换
-- ✅ 导航进度标记已更新
+- ✅ 导航状态已更新（data-pending="true" → "false"）
 - ✅ 使用组件: Card, Badge, Progress
 ```
 
@@ -738,6 +990,12 @@ Read(file_path="{output_html_path}", offset=目标行附近, limit=20)
 
 完成填充后，逐项检查：
 
+**H3 子章节处理:**
+- [ ] H3 子章节使用 `accordion-group` + `accordion-item` 结构
+- [ ] 没有用 `rounded-lg border bg-card` 替代 Accordion
+- [ ] 图表等前置内容在 `accordion-group` 外部
+- [ ] 每个 H3 都有折叠功能
+
 **选型决策:**
 - [ ] H3 子章节处理方式已根据内容长度合理选择
 - [ ] 列表组件已根据列表特征选择合适样式
@@ -746,6 +1004,7 @@ Read(file_path="{output_html_path}", offset=目标行附近, limit=20)
 **图表转换（如适用）:**
 - [ ] 所有图表已选择正确的渲染方案（Mermaid/Canvas/HTML）
 - [ ] Mermaid 代码正确包裹在 `<pre class="mermaid">` 中
+- [ ] Mermaid 图表无重复标题（折叠面板标题已提供）
 - [ ] Canvas 蓝图代码正确初始化画布尺寸
 - [ ] 无 `<pre>` 包裹的 ASCII 字符串图表
 
@@ -769,12 +1028,32 @@ Read(file_path="{output_html_path}", offset=目标行附近, limit=20)
 
 ## 禁止事项
 
+### H3 子章节处理（CRITICAL）
+
+- ❌ **用 Card 样式容器替代 Accordion** - H3 子章节必须使用 `accordion-group` + `accordion-item`
+- ❌ **省略 accordion-group** - 有 H3 子章节时必须创建折叠卡片组
+- ❌ **H3 内容无折叠功能** - 用户无法按需展开/折叠
+
 ### 图表处理（最高优先级）
 
 - ❌ **保留 ASCII 字符串图表** - 必须转换为 HTML 组件
 - ❌ **使用 `<pre>` 包裹 ASCII 图表** - 这不是可视化
 - ❌ **将图表作为普通文本段落处理** - 图表需要专门的可视化组件
 - ❌ **忽略图表结构** - 必须解析节点、连接、分支
+- ❌ **为 Mermaid 图表添加 `.diagram-title`** - 折叠面板标题已提供，无需重复
+
+### Canvas 绘制（防止裁剪）
+
+- ❌ **硬编码 Canvas 高度** - 必须根据内容动态计算 `canvas.height`
+- ❌ **省略边界计算函数** - 必须实现 `calculateContentBounds()` 遍历所有节点
+- ❌ **绘制前不声明节点数据** - 必须先定义 `nodes` 数组，再计算边界和绘制
+- ❌ **缺少滚动容器** - Canvas 外层必须包裹 `max-height` + `overflow: auto` 的容器
+
+### 文件读取（上下文优化）
+
+- ❌ **全量读取 HTML 文件** - 必须使用 Grep 预定位 + offset/limit
+- ❌ **不带 offset/limit 参数的 Read** - 每次读取限制在 50 行以内
+- ❌ **读取无关区域** - 只读取当前章节相关的占位符区域
 
 ### 其他禁止事项
 

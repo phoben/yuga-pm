@@ -71,6 +71,7 @@
     mermaid.initialize({
       startOnLoad: true,
       theme: 'default',
+      useMaxWidth: false,  // 让图表撑满容器
       themeVariables: {
         primaryColor: '#3b82f6',
         primaryTextColor: '#ffffff',
@@ -401,42 +402,36 @@
     }
 
     /* ============================================
-       Progress Indicator Styles
+       Navigation Item States
        ============================================ */
-    .nav-item-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+    .nav-item {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      transition: all 0.2s;
     }
 
-    .nav-progress-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      font-size: 10px;
-      font-weight: 500;
-      border-radius: 9999px;
-      background: hsl(var(--primary) / 0.1);
-      color: hsl(var(--primary));
-      animation: pulse-badge 2s ease-in-out infinite;
+    /* 禁用状态（内容未填充） */
+    .nav-item[data-pending="true"] {
+      color: hsl(var(--muted-foreground));
+      pointer-events: none;
+      opacity: 0.6;
     }
 
-    .nav-progress-badge svg {
-      width: 10px;
-      height: 10px;
-      animation: spin 1.5s linear infinite;
+    /* 正常状态（内容已填充） */
+    .nav-item[data-pending="false"] {
+      color: hsl(var(--foreground));
     }
 
-    @keyframes pulse-badge {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
+    .nav-item[data-pending="false"]:hover {
+      background: hsl(var(--accent));
+      color: hsl(var(--accent-foreground));
     }
 
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+    .nav-item[data-pending="false"].active {
+      background: hsl(var(--accent));
+      color: hsl(var(--accent-foreground));
     }
 
     /* ============================================
@@ -636,8 +631,15 @@
     }
 
     .diagram-container .mermaid {
+      width: 100%;
       display: flex;
       justify-content: center;
+    }
+
+    /* 让 Mermaid SVG 撑满容器 */
+    .diagram-container .mermaid svg {
+      width: 100% !important;
+      min-width: fit-content;
     }
 
     .diagram-title {
@@ -708,6 +710,24 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
+        <!-- Toggle All Accordions Button -->
+        <button
+          id="toggle-accordions-btn"
+          onclick="toggleAllAccordions()"
+          class="inline-flex items-center justify-center w-10 h-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+          aria-label="Toggle all accordions"
+          title="展开/收缩所有折叠面板"
+        >
+          <!-- 展开图标 (list-collapse) -->
+          <svg class="w-5 h-5 accordion-icon-expand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+          <!-- 收缩图标 (chevrons-down) -->
+          <svg class="w-5 h-5 accordion-icon-collapse hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+          </svg>
+        </button>
+        <!-- Theme Toggle Button -->
         <button
           onclick="toggleTheme()"
           class="inline-flex items-center justify-center w-10 h-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
@@ -727,21 +747,13 @@
   <div class="flex min-h-screen pt-16 justify-center">
     <!-- Sidebar Navigation -->
     <aside class="w-[280px] fixed left-0 top-16 bottom-0 bg-muted/30 border-r overflow-y-auto p-6">
-      <div class="mb-6 pb-4 border-b">
-        <h1 class="text-lg font-bold" data-fill="doc-title">目录</h1>
-      </div>
       <nav class="space-y-1" data-fill="nav">
         <!-- Navigation items populated by Main Agent -->
-        <!-- FORMAT WITH PROGRESS BADGE:
-        <div class="nav-item-wrapper">
-          <a href="#section-N" class="nav-item flex-1 block px-3 py-2 rounded-md text-sm hover:bg-accent">章节标题</a>
-          <span class="nav-progress-badge" data-section="section-N">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
-            </svg>
-            编写中
-          </span>
-        </div>
+        <!-- FORMAT: 禁用状态（内容未填充）
+        <a href="#section-N" class="nav-item" data-pending="true">章节标题</a>
+        -->
+        <!-- FORMAT: 正常状态（内容已填充）
+        <a href="#section-N" class="nav-item" data-pending="false">章节标题</a>
         -->
       </nav>
     </aside>
@@ -856,9 +868,10 @@
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           navItems.forEach(item => {
-            const isActive = item.getAttribute('href') === '#' + entry.target.id;
-            item.classList.toggle('bg-accent', isActive);
-            item.classList.toggle('text-accent-foreground', isActive);
+            if (item.getAttribute('data-pending') === 'false') {
+              const isActive = item.getAttribute('href') === '#' + entry.target.id;
+              item.classList.toggle('active', isActive);
+            }
           });
         }
       });
@@ -866,8 +879,8 @@
 
     sections.forEach(section => observer.observe(section));
 
-    // Smooth scroll for navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
+    // Smooth scroll for navigation (only for enabled items)
+    document.querySelectorAll('.nav-item[data-pending="false"]').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         const targetId = item.getAttribute('href');
@@ -890,6 +903,32 @@
         item.setAttribute('data-state', isOpen ? 'closed' : 'open');
       });
     });
+
+    /* ============================================
+       Toggle All Accordions
+       ============================================ */
+    let allAccordionsExpanded = false;
+
+    function toggleAllAccordions() {
+      const accordionItems = document.querySelectorAll('.accordion-item');
+      const expandIcon = document.querySelector('.accordion-icon-expand');
+      const collapseIcon = document.querySelector('.accordion-icon-collapse');
+
+      allAccordionsExpanded = !allAccordionsExpanded;
+
+      accordionItems.forEach(item => {
+        item.setAttribute('data-state', allAccordionsExpanded ? 'open' : 'closed');
+      });
+
+      // 切换图标显示
+      if (allAccordionsExpanded) {
+        expandIcon.classList.add('hidden');
+        collapseIcon.classList.remove('hidden');
+      } else {
+        expandIcon.classList.remove('hidden');
+        collapseIcon.classList.add('hidden');
+      }
+    }
   </script>
 </body>
 </html>
