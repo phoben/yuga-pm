@@ -38,13 +38,42 @@ Agent 生成 JSON 配置 → yg-diagram 封装层 → Konva.js → Canvas
 ### 2.1 基础字段
 
 ```typescript
+// 图表类型枚举
+type DiagramType =
+  | 'flowchart'      // 流程图
+  | 'architecture'   // 架构图
+  | 'sequence'       // 时序图
+  | 'statechart'     // 状态图
+  | 'er-diagram'     // ER 图
+  | 'gantt'          // 甘特图
+  | 'mindmap'        // 思维导图
+  | 'network';       // 网络拓扑图
+
+// 主题类型枚举
+type ThemeType = 'light' | 'dark' | 'minimal' | 'colorful';
+
 interface DiagramConfig {
   type: DiagramType;           // 图表类型
   title?: string;              // 图表标题
-  theme?: ThemeType;           // 主题样式
+  theme?: ThemeType;           // 主题样式（默认 'light'）
   interactive?: InteractiveConfig;  // 交互配置
 }
 ```
+
+**连线字段命名约定：**
+
+不同图表类型使用语义化的连线字段名，便于 Agent 理解：
+
+| 图表类型 | 连线字段 | 说明 |
+|---------|---------|------|
+| flowchart | `edges` | 流程边 |
+| architecture | `connections` | 服务连接 |
+| sequence | `messages` | 消息传递 |
+| statechart | `transitions` | 状态转换 |
+| er-diagram | `relations` | 实体关系 |
+| network | `connections` | 网络连接 |
+
+所有连线结构均包含 `from`、`to`、`label`（可选）字段。
 
 ### 2.2 主题系统
 
@@ -72,6 +101,15 @@ interface DiagramConfig {
 --edge-highlight: #3b82f6;
 --edge-data: #10b981;
 ```
+
+**主题与颜色联动：**
+
+| 主题 | 背景色 | 节点颜色策略 | 文字颜色 |
+|------|--------|-------------|---------|
+| `light` | `#ffffff` | 使用上述颜色变量原值 | `#1e293b` |
+| `dark` | `#1e293b` | 颜色变量亮度降低 15% | `#f1f5f9` |
+| `minimal` | `#ffffff` | 仅使用 `--node-neutral` 灰度 | `#334155` |
+| `colorful` | `#ffffff` | 节点使用渐变填充 | `#1e293b` |
 
 ### 2.4 字体规范
 
@@ -158,6 +196,21 @@ interface InteractiveConfig {
 | `external` | 灰色渐变 | 外部服务 | `cloud` |
 | `client` | 青色渐变 | 客户端 | `monitor` |
 | `queue` | 黄色渐变 | 消息队列 | `list` |
+
+#### 可用图标列表
+
+架构图节点支持 `icon` 字段，使用 Lucide 图标库。常用图标：
+
+| 分类 | 图标名称 |
+|------|---------|
+| **服务端** | `server`, `cpu`, `hard-drive`, `database` |
+| **客户端** | `monitor`, `smartphone`, `tablet`, `laptop` |
+| **网络** | `globe`, `cloud`, `wifi`, `shield` |
+| **数据** | `database`, `file-text`, `archive`, `folder` |
+| **安全** | `shield`, `lock`, `key`, `eye` |
+| **消息** | `mail`, `message-square`, `send`, `bell` |
+| **流程** | `zap`, `git-branch`, `layers`, `workflow` |
+| **通用** | `settings`, `tool`, `package`, `box` |
 
 #### 配置示例
 
@@ -259,6 +312,34 @@ interface InteractiveConfig {
 }
 ```
 
+#### 注释 (notes) 字段
+
+| 字段 | 用途 |
+|------|------|
+| `position` | 位置：`left` / `right` / `over` |
+| `participant` | 关联的参与者 ID（over 时可传数组） |
+| `label` | 注释文字 |
+
+#### 分组框
+
+支持 `alt`/`loop`/`opt`/`par` 等逻辑分组：
+
+```json
+{
+  "groups": [
+    {
+      "type": "alt",
+      "label": "验证结果",
+      "participants": ["api"],
+      "branches": [
+        {"label": "成功", "messages": [...]},
+        {"label": "失败", "messages": [...]}
+      ]
+    }
+  ]
+}
+```
+
 ---
 
 ### 3.4 状态图 (statechart)
@@ -283,6 +364,8 @@ interface InteractiveConfig {
 | `action` | 执行动作 |
 
 #### 配置示例
+
+**基础示例：**
 
 ```json
 {
@@ -309,6 +392,39 @@ interface InteractiveConfig {
 }
 ```
 
+**复合状态示例：**
+
+```json
+{
+  "type": "statechart",
+  "title": "用户会话状态",
+  "states": [
+    {"id": "init", "type": "initial"},
+    {
+      "id": "active",
+      "label": "活动状态",
+      "type": "composite",
+      "children": [
+        {"id": "active.idle", "label": "空闲", "type": "state"},
+        {"id": "active.processing", "label": "处理中", "type": "state"},
+        {"id": "active.waiting", "label": "等待响应", "type": "state"}
+      ]
+    },
+    {"id": "inactive", "label": "非活动", "type": "state"},
+    {"id": "end", "type": "final"}
+  ],
+  "transitions": [
+    {"from": "init", "to": "active.idle", "trigger": "登录"},
+    {"from": "active.idle", "to": "active.processing", "trigger": "发起请求"},
+    {"from": "active.processing", "to": "active.waiting", "trigger": "等待确认"},
+    {"from": "active.waiting", "to": "active.idle", "trigger": "确认完成"},
+    {"from": "active", "to": "inactive", "trigger": "超时", "guard": "无操作 30 分钟"},
+    {"from": "inactive", "to": "active.idle", "trigger": "恢复"},
+    {"from": "inactive", "to": "end", "trigger": "登出"}
+  ]
+}
+```
+
 ---
 
 ### 3.5 ER 图 (er-diagram)
@@ -325,9 +441,9 @@ interface InteractiveConfig {
 | 字段 | 用途 |
 |------|------|
 | `name` | 字段名 |
-| `type` | 数据类型 |
+| `dataType` | 数据类型（如 BIGINT, VARCHAR(50)） |
 | `pk` | 是否主键 |
-| `fk` | 外键引用 |
+| `fk` | 外键引用（格式：`实体.字段`） |
 | `nullable` | 是否可空 |
 
 #### 关系类型
@@ -351,10 +467,10 @@ interface InteractiveConfig {
       "label": "用户",
       "type": "entity",
       "fields": [
-        {"name": "id", "type": "BIGINT", "pk": true},
-        {"name": "username", "type": "VARCHAR(50)"},
-        {"name": "email", "type": "VARCHAR(100)"},
-        {"name": "created_at", "type": "DATETIME"}
+        {"name": "id", "dataType": "BIGINT", "pk": true},
+        {"name": "username", "dataType": "VARCHAR(50)"},
+        {"name": "email", "dataType": "VARCHAR(100)"},
+        {"name": "created_at", "dataType": "DATETIME"}
       ]
     },
     {
@@ -362,10 +478,10 @@ interface InteractiveConfig {
       "label": "订单",
       "type": "entity",
       "fields": [
-        {"name": "id", "type": "BIGINT", "pk": true},
-        {"name": "user_id", "type": "BIGINT", "fk": "user.id"},
-        {"name": "status", "type": "VARCHAR(20)"},
-        {"name": "total", "type": "DECIMAL(10,2)"}
+        {"name": "id", "dataType": "BIGINT", "pk": true},
+        {"name": "user_id", "dataType": "BIGINT", "fk": "user.id"},
+        {"name": "status", "dataType": "VARCHAR(20)"},
+        {"name": "total", "dataType": "DECIMAL(10,2)"}
       ]
     },
     {
@@ -373,10 +489,10 @@ interface InteractiveConfig {
       "label": "商品",
       "type": "entity",
       "fields": [
-        {"name": "id", "type": "BIGINT", "pk": true},
-        {"name": "name", "type": "VARCHAR(200)"},
-        {"name": "price", "type": "DECIMAL(10,2)"},
-        {"name": "stock", "type": "INT"}
+        {"name": "id", "dataType": "BIGINT", "pk": true},
+        {"name": "name", "dataType": "VARCHAR(200)"},
+        {"name": "price", "dataType": "DECIMAL(10,2)"},
+        {"name": "stock", "dataType": "INT"}
       ]
     }
   ],
@@ -611,16 +727,32 @@ interface InteractiveConfig {
 
 ### 4.3 Popover 内容结构
 
+节点支持 `popover` 字段，点击节点时显示详情：
+
 ```json
 {
-  "title": "节点名称",
-  "description": "节点描述文字",
-  "metadata": {
-    "状态": "运行中",
-    "创建时间": "2026-03-25"
+  "id": "user-service",
+  "label": "用户服务",
+  "type": "primary",
+  "popover": {
+    "title": "用户服务",
+    "description": "负责用户认证与授权管理",
+    "metadata": {
+      "端口": "8080",
+      "状态": "运行中",
+      "实例数": "3"
+    }
   }
 }
 ```
+
+**Popover 字段说明：**
+
+| 字段 | 用途 |
+|------|------|
+| `title` | 弹窗标题（可选，默认使用节点 label） |
+| `description` | 描述文字 |
+| `metadata` | 键值对元数据，显示为标签列表 |
 
 ---
 
@@ -679,7 +811,7 @@ YGDiagram.render(container, config);
 ```
 1. 分析文档内容，识别图表需求
 2. 选择合适的图表类型
-3. 参考 yg-diagram-spec.md 规范
+3. 参考本文档相应章节的规范
 4. 生成符合规范的 JSON 配置
 5. 使用 HTML 模板嵌入页面
 ```
