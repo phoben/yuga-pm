@@ -2,11 +2,33 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Reference Document:** Complete content for rules, workflows, and templates is in the spec:
+> `docs/superpowers/specs/2026-03-25-yg-app-prototyping-skill-design.md`
+> Each task below includes key excerpts; the spec has the full detailed content.
+
 **Goal:** Create a new skill for generating functional application prototypes from requirements documents using Agent Team coordination.
 
 **Architecture:** Master-slave agent pattern with Main Agent orchestrating Writer, Coder, and Reviewer agents. Each page becomes an independent development task with branch/PR workflow and review gates.
 
 **Tech Stack:** Claude Code plugin architecture with skills, agents, rules, workflows, and templates.
+
+---
+
+## Spec Reference Map
+
+| Plan Task | Spec Section | Content Reference |
+|-----------|-------------|-------------------|
+| Task 6: tech-stack-selection.md | Spec 4.1 Step 0.3 + 5.2-5.5 | Tech stack matrix, AskUserQuestion examples |
+| Task 7: drd-handling.md | Spec 4.1 Step 0.2 | DRD detection/generation flow |
+| Task 8: project-setup.md | Spec 4.1 Step 0.4 | Project scaffolding checklist |
+| Task 9: task-planning.md | Spec 4.1 Step 0.5 + 4.2 | Task planning flow, Git branch strategy |
+| Task 10: code-generation.md | Spec 6.2 + 6.4 | Agent dispatch strategy, context management |
+| Task 11: review-workflow.md | Spec 4.3 | Review & merge flow, review report template |
+| Task 12: mock-data.md | Spec 6.5 | Mock data strategy and standards |
+| Task 13: master-workflow.md | Spec 4.1-4.4 | Complete workflow phases |
+| Task 14: coder-workflow.md | Spec 3.4 + agents/page-coder.md | Coder agent workflow |
+| Task 15: reviewer-workflow.md | Spec 3.5 + agents/pr-reviewer.md | Reviewer agent workflow |
+| Tasks 16-19: Templates | Spec 5.1-5.6 | Tech stack configs, design tokens |
 
 ---
 
@@ -1076,13 +1098,38 @@ git commit -m "feat(yg-app-prototyping): add tech stack selection rule"
 
 ### Task 7-12: Create remaining rules files
 
-*Follow the same pattern for:*
-- `rules/drd-handling.md`
-- `rules/project-setup.md`
-- `rules/task-planning.md`
-- `rules/code-generation.md`
-- `rules/review-workflow.md`
-- `rules/mock-data.md`
+> **Reference:** See spec sections 4.1-4.4, 6.1-6.5 for complete content.
+> Each file should follow the structure in `tech-stack-selection.md` (Task 6).
+
+**Task 7: Create drd-handling.md**
+- File: `skills/yg-app-prototyping/rules/drd-handling.md`
+- Content: DRD detection flow (spec 4.1 Step 0.2), validation checklist
+- Commit: `feat(yg-app-prototyping): add DRD handling rule`
+
+**Task 8: Create project-setup.md**
+- File: `skills/yg-app-prototyping/rules/project-setup.md`
+- Content: Project scaffolding checklist (spec 4.1 Step 0.4), directory structure
+- Commit: `feat(yg-app-prototyping): add project setup rule`
+
+**Task 9: Create task-planning.md**
+- File: `skills/yg-app-prototyping/rules/task-planning.md`
+- Content: Task planning flow (spec 4.1 Step 0.5), Git branch strategy (spec 4.2)
+- Commit: `feat(yg-app-prototyping): add task planning rule`
+
+**Task 10: Create code-generation.md**
+- File: `skills/yg-app-prototyping/rules/code-generation.md`
+- Content: Agent dispatch strategy (spec 6.2), context management (spec 6.4)
+- Commit: `feat(yg-app-prototyping): add code generation rule`
+
+**Task 11: Create review-workflow.md**
+- File: `skills/yg-app-prototyping/rules/review-workflow.md`
+- Content: Review & merge flow (spec 4.3), review report template
+- Commit: `feat(yg-app-prototyping): add review workflow rule`
+
+**Task 12: Create mock-data.md**
+- File: `skills/yg-app-prototyping/rules/mock-data.md`
+- Content: Mock data strategy (spec 6.5), data standards
+- Commit: `feat(yg-app-prototyping): add mock data rule`
 
 **Commit each file separately.**
 
@@ -1317,9 +1364,20 @@ git commit -m "feat(yg-app-prototyping): add master workflow"
 
 ### Task 14-15: Create remaining workflow files
 
-*Follow the same pattern for:*
-- `workflows/coder-workflow.md`
-- `workflows/reviewer-workflow.md`
+> **Reference:** See spec sections 3.4, 3.5 and agents/*.md for complete content.
+> Each file should follow the structure in `master-workflow.md` (Task 13).
+
+**Task 14: Create coder-workflow.md**
+- File: `skills/yg-app-prototyping/workflows/coder-workflow.md`
+- Content: Coder agent workflow from `agents/page-coder.md`
+- Key steps: Create branch → Generate code → Lint → Commit → Create PR
+- Commit: `feat(yg-app-prototyping): add coder workflow`
+
+**Task 15: Create reviewer-workflow.md**
+- File: `skills/yg-app-prototyping/workflows/reviewer-workflow.md`
+- Content: Reviewer agent workflow from `agents/pr-reviewer.md`
+- Key steps: Fetch PR → Review checklist → Generate report → Send feedback
+- Commit: `feat(yg-app-prototyping): add reviewer workflow`
 
 ---
 
@@ -1414,10 +1472,29 @@ git commit -m "feat(yg-app-prototyping): add Next.js + shadcn/ui template"
 
 ### Task 17-19: Create remaining templates
 
-*Follow similar pattern for:*
-- `templates/react-element/`
-- `templates/vue-element/`
-- `templates/taro-miniprogram/`
+> **Reference:** See spec sections 5.1-5.6 for complete configs and design tokens.
+> Each template should follow the structure in `nextjs-shadcn/` (Task 16).
+
+**Task 17: Create React + Element UI template**
+- Directory: `skills/yg-app-prototyping/templates/react-element/`
+- Files: README.md, package.json.tmpl
+- Config from spec 5.3: React 18, Element Plus, Vite, React Router
+- Dependencies: react, react-dom, element-plus, react-router-dom, zustand
+- Commit: `feat(yg-app-prototyping): add React + Element UI template`
+
+**Task 18: Create Vue + Element Plus template**
+- Directory: `skills/yg-app-prototyping/templates/vue-element/`
+- Files: README.md, package.json.tmpl
+- Config from spec 5.4: Vue 3, Element Plus, Vite, Vue Router, Pinia
+- Dependencies: vue, vue-router, pinia, element-plus
+- Commit: `feat(yg-app-prototyping): add Vue + Element Plus template`
+
+**Task 19: Create Taro (小程序) template**
+- Directory: `skills/yg-app-prototyping/templates/taro-miniprogram/`
+- Files: README.md, package.json.tmpl
+- Config from spec 5.5: Taro 3, Ant Design Mini
+- Dependencies: @tarojs/taro, @tarojs/components, antd-mini
+- Commit: `feat(yg-app-prototyping): add Taro template`
 
 ---
 
