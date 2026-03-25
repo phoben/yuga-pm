@@ -5,793 +5,820 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{doc-title}}</title>
 
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))',
+            input: 'hsl(var(--input))',
+            ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            primary: {
+              DEFAULT: 'hsl(var(--primary))',
+              foreground: 'hsl(var(--primary-foreground))'
+            },
+            secondary: {
+              DEFAULT: 'hsl(var(--secondary))',
+              foreground: 'hsl(var(--secondary-foreground))'
+            },
+            destructive: {
+              DEFAULT: 'hsl(var(--destructive))',
+              foreground: 'hsl(var(--destructive-foreground))'
+            },
+            muted: {
+              DEFAULT: 'hsl(var(--muted))',
+              foreground: 'hsl(var(--muted-foreground))'
+            },
+            accent: {
+              DEFAULT: 'hsl(var(--accent))',
+              foreground: 'hsl(var(--accent-foreground))'
+            },
+            popover: {
+              DEFAULT: 'hsl(var(--popover))',
+              foreground: 'hsl(var(--popover-foreground))'
+            },
+            card: {
+              DEFAULT: 'hsl(var(--card))',
+              foreground: 'hsl(var(--card-foreground))'
+            }
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)'
+          }
+        }
+      }
+    }
+  </script>
+
   <!-- Modern Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- CDN Dependencies -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Konva.js for Canvas Diagrams -->
+  <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+  <!-- dagre for automatic graph layout -->
+  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
 
   <style>
     /* ============================================
-       CSS Variables - Light Theme (Default)
-       Modern Design System with Refined Palette
+       shadcn/ui CSS Variables - Light Theme
        ============================================ */
     :root {
-      /* Primary - Modern Blue */
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --primary-foreground: #ffffff;
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 222.2 84% 4.9%;
+      --primary: 221.2 83.2% 53.3%;
+      --primary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 221.2 83.2% 53.3%;
+      --radius: 0.5rem;
 
-      /* Secondary */
-      --secondary: #64748b;
-      --secondary-foreground: #ffffff;
-
-      /* Backgrounds - Soft warm white */
-      --background: #fafbfc;
-      --foreground: #0f172a;
-
-      /* Cards & Surfaces */
-      --card-bg: #ffffff;
-      --card-border: #e2e8f0;
-      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-      --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-
-      /* Borders */
-      --border: #e2e8f0;
-      --border-subtle: #f1f5f9;
-
-      /* Muted */
-      --muted: #f8fafc;
-      --muted-foreground: #64748b;
-
-      /* Header - Glass effect */
-      --header-bg: rgba(255, 255, 255, 0.72);
-      --header-border: rgba(226, 232, 240, 0.8);
-
-      /* Sidebar */
-      --sidebar-bg: #f8fafc;
-      --sidebar-border: #e2e8f0;
-
-      /* Chart Colors - Vibrant yet harmonious */
-      --chart-color-1: #3b82f6;
-      --chart-color-2: #10b981;
-      --chart-color-3: #f59e0b;
-      --chart-color-4: #ef4444;
-      --chart-color-5: #8b5cf6;
-
-      /* Typography - Modern Inter font */
-      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
-
-      /* Spacing & Radius */
-      --radius: 10px;
-      --radius-sm: 6px;
-      --radius-lg: 14px;
+      /* Sidebar specific */
       --sidebar-width: 280px;
       --header-height: 64px;
-
-      /* Transitions */
-      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-      --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-
-      /* Scrollbar */
-      --scrollbar-track: transparent;
-      --scrollbar-thumb: rgba(0, 0, 0, 0.15);
-      --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
-
-      /* Accent gradient for special elements */
-      --gradient-primary: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
     }
 
     /* ============================================
-       CSS Variables - Dark Theme
-       Modern Dark Mode with Better Contrast
+       shadcn/ui CSS Variables - Dark Theme
        ============================================ */
-    [data-theme="dark"] {
-      /* Primary - Slightly lighter for dark bg */
-      --primary: #60a5fa;
-      --primary-hover: #3b82f6;
-      --primary-foreground: #0f172a;
-
-      /* Secondary */
-      --secondary: #475569;
-      --secondary-foreground: #f1f5f9;
-
-      /* Backgrounds - True dark with subtle blue tint */
-      --background: #0c1222;
-      --foreground: #f1f5f9;
-
-      /* Cards & Surfaces */
-      --card-bg: #1a2332;
-      --card-border: #2d3a4f;
-      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.3);
-      --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
-
-      /* Borders */
-      --border: #2d3a4f;
-      --border-subtle: #1e293b;
-
-      /* Muted */
-      --muted: #141d2b;
-      --muted-foreground: #94a3b8;
-
-      /* Header - Glass effect for dark */
-      --header-bg: rgba(12, 18, 34, 0.75);
-      --header-border: rgba(45, 58, 79, 0.6);
-
-      /* Sidebar */
-      --sidebar-bg: #111827;
-      --sidebar-border: #1f2937;
-
-      /* Chart Colors - Adjusted for dark bg with more vibrancy */
-      --chart-color-1: #60a5fa;
-      --chart-color-2: #34d399;
-      --chart-color-3: #fbbf24;
-      --chart-color-4: #f87171;
-      --chart-color-5: #a78bfa;
-
-      /* Scrollbar */
-      --scrollbar-track: transparent;
-      --scrollbar-thumb: rgba(255, 255, 255, 0.12);
-      --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
-
-      /* Accent gradient */
-      --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-    }
-
-    /* ============================================
-       System Preference Auto-Detection
-       ============================================ */
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --primary: #60a5fa;
-        --primary-hover: #3b82f6;
-        --primary-foreground: #0f172a;
-        --secondary: #475569;
-        --secondary-foreground: #f1f5f9;
-        --background: #0c1222;
-        --foreground: #f1f5f9;
-        --card-bg: #1a2332;
-        --card-border: #2d3a4f;
-        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.3);
-        --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
-        --border: #2d3a4f;
-        --border-subtle: #1e293b;
-        --muted: #141d2b;
-        --muted-foreground: #94a3b8;
-        --header-bg: rgba(12, 18, 34, 0.75);
-        --header-border: rgba(45, 58, 79, 0.6);
-        --sidebar-bg: #111827;
-        --sidebar-border: #1f2937;
-        --chart-color-1: #60a5fa;
-        --chart-color-2: #34d399;
-        --chart-color-3: #fbbf24;
-        --chart-color-4: #f87171;
-        --chart-color-5: #a78bfa;
-        --scrollbar-thumb: rgba(255, 255, 255, 0.12);
-        --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
-        --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-      }
+    [data-theme="dark"],
+    .dark {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --popover: 222.2 84% 4.9%;
+      --popover-foreground: 210 40% 98%;
+      --primary: 217.2 91.2% 59.8%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --accent: 217.2 32.6% 17.5%;
+      --accent-foreground: 210 40% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+      --input: 217.2 32.6% 17.5%;
+      --ring: 224.3 76.3% 48%;
     }
 
     /* ============================================
        Base Styles
        ============================================ */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      border-color: hsl(var(--border));
+    }
 
+    body {
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Smooth scrolling */
     html {
       scroll-behavior: smooth;
     }
 
-    body {
-      font-family: var(--font-sans);
-      background: var(--background);
-      color: var(--foreground);
-      line-height: 1.7;
-      font-size: 15px;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-    }
-
+    /* Selection */
     ::selection {
-      background: var(--primary);
-      color: var(--primary-foreground);
-    }
-
-    .app-container {
-      display: flex;
-      min-height: 100vh;
+      background-color: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
     }
 
     /* ============================================
-       Fixed Top Header - Modern Glass Effect
+       Flowchart Component Styles
        ============================================ */
-    .top-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: var(--header-height);
-      background: var(--header-bg);
-      backdrop-filter: blur(16px) saturate(180%);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
-      border-bottom: 1px solid var(--header-border);
+    .flowchart-container {
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      padding: 24px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .flow-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: hsl(var(--foreground));
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .flowchart {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .flow-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .flow-node {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      min-width: 120px;
+      max-width: 200px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .flow-node:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .flow-node[data-type="start"],
+    .flow-node[data-type="end"] {
+      border-radius: 50px;
+      color: white;
+    }
+
+    .flow-node[data-type="start"] {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .flow-node[data-type="end"] {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .flow-node[data-type="process"] {
+      background: hsl(var(--background));
+      border: 2px solid hsl(var(--primary));
+      border-radius: var(--radius);
+      color: hsl(var(--foreground));
+    }
+
+    .flow-node[data-type="decision"] {
+      background: hsl(var(--background));
+      border: 2px solid #f59e0b;
+      border-radius: 0;
+      color: hsl(var(--foreground));
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      padding: 24px;
+      min-width: 100px;
+      max-width: 160px;
+    }
+
+    .flow-arrow {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .flow-arrow svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .flow-parallel {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+    }
+
+    .flow-branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+
+    .flow-branch-label {
+      position: absolute;
+      top: -20px;
+      font-size: 11px;
+      padding: 2px 6px;
+      background: hsl(var(--muted));
+      color: hsl(var(--muted-foreground));
+      border-radius: 4px;
+    }
+
+    /* ============================================
+       Architecture Diagram Component Styles
+       ============================================ */
+    .architecture-diagram {
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      padding: 24px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .arch-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: hsl(var(--foreground));
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .arch-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .arch-layer {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .layer-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: hsl(var(--muted-foreground));
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding-left: 4px;
+    }
+
+    .layer-nodes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .arch-node {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: white;
+      min-width: 140px;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .arch-node:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .arch-node svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .arch-node[data-type="primary"] {
+      background: linear-gradient(135deg, hsl(var(--primary)), #2563eb);
+    }
+
+    .arch-node[data-type="secondary"] {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .arch-node[data-type="database"] {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .arch-node[data-type="cache"] {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .arch-node[data-type="external"] {
+      background: linear-gradient(135deg, #64748b, #475569);
+    }
+
+    .arch-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+      position: relative;
+    }
+
+    .arch-connector-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: hsl(var(--muted-foreground));
+      font-size: 11px;
+      background: hsl(var(--card));
+      padding: 0 8px;
+    }
+
+    .arch-connector-line svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ============================================
+       Progress Indicator Styles
+       ============================================ */
+    .nav-item-wrapper {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 32px;
-      z-index: 100;
-      transition: box-shadow var(--transition-normal);
-    }
-
-    .top-header::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border), transparent);
-      opacity: 0.5;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .header-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--foreground);
-      letter-spacing: -0.01em;
-    }
-
-    .header-tags {
-      display: flex;
       gap: 8px;
     }
 
-    .header-tag {
+    .nav-progress-badge {
       display: inline-flex;
       align-items: center;
-      padding: 5px 12px;
-      background: var(--muted);
-      color: var(--muted-foreground);
-      border: 1px solid var(--border-subtle);
-      border-radius: 20px;
-      font-size: 12px;
+      gap: 4px;
+      padding: 2px 8px;
+      font-size: 10px;
       font-weight: 500;
-      letter-spacing: 0.01em;
-      transition: all var(--transition-fast);
+      border-radius: 9999px;
+      background: hsl(var(--primary) / 0.1);
+      color: hsl(var(--primary));
+      animation: pulse-badge 2s ease-in-out infinite;
     }
 
-    .header-tag:hover {
-      border-color: var(--primary);
-      color: var(--primary);
+    .nav-progress-badge svg {
+      width: 10px;
+      height: 10px;
+      animation: spin 1.5s linear infinite;
     }
 
-    .header-actions {
+    @keyframes pulse-badge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ============================================
+       Skeleton Loading Styles
+       ============================================ */
+    .skeleton-container {
+      padding: 24px 0;
+    }
+
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        hsl(var(--muted)) 25%,
+        hsl(var(--muted) / 0.5) 50%,
+        hsl(var(--muted)) 75%
+      );
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s ease-in-out infinite;
+      border-radius: var(--radius);
+    }
+
+    .skeleton-text {
+      height: 16px;
+      margin-bottom: 12px;
+    }
+
+    .skeleton-text:last-child {
+      margin-bottom: 0;
+    }
+
+    .skeleton-text.short {
+      width: 60%;
+    }
+
+    .skeleton-text.medium {
+      width: 80%;
+    }
+
+    .skeleton-text.full {
+      width: 100%;
+    }
+
+    .skeleton-card {
+      height: 120px;
+      margin-bottom: 16px;
+    }
+
+    .skeleton-title {
+      height: 24px;
+      width: 40%;
+      margin-bottom: 20px;
+    }
+
+    .skeleton-list-item {
+      height: 48px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .theme-toggle {
+    .skeleton-list-item .skeleton {
+      flex: 1;
+    }
+
+    .skeleton-list-item .skeleton:first-child {
+      width: 24px;
+      height: 24px;
+      flex: none;
+      border-radius: 50%;
+    }
+
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ============================================
+       Accordion Component Styles
+       ============================================ */
+    .accordion-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .accordion-item {
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: hsl(var(--card));
+    }
+
+    .accordion-trigger {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: left;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: hsl(var(--foreground));
+    }
+
+    .accordion-trigger:hover {
+      background: hsl(var(--muted));
+    }
+
+    .accordion-trigger svg {
+      width: 18px;
+      height: 18px;
+      color: hsl(var(--muted-foreground));
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .accordion-item[data-state="open"] .accordion-trigger svg {
+      transform: rotate(180deg);
+    }
+
+    .accordion-content {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    }
+
+    .accordion-item[data-state="open"] .accordion-content {
+      
+      max-height: 2000px;
+      transition: max-height 0.5s ease-in;
+    }
+
+    .accordion-content-inner {
+      padding: 10px 20px 16px 20px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: hsl(var(--foreground));
+    }
+
+    .accordion-content-inner p {
+      margin: 0 0 12px 0;
+    }
+
+    .accordion-content-inner p:last-child {
+      margin-bottom: 0;
+    }
+
+    .accordion-content-inner ul,
+    .accordion-content-inner ol {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    .accordion-content-inner li {
+      margin: 4px 0;
+    }
+
+    /* H3 标题在 accordion 中的样式 */
+    .accordion-trigger h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: hsl(var(--foreground));
+    }
+
+    /* 带图标的 accordion trigger */
+    .accordion-trigger-icon {
       display: flex;
       align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      border: 1px solid var(--border);
-      background: var(--card-bg);
-      color: var(--foreground);
+      gap: 10px;
+    }
+
+    .accordion-trigger-icon svg:first-child {
+      width: 18px;
+      height: 18px;
+      color: hsl(var(--primary));
+    }
+
+    /* ============================================
+       yg-diagram Canvas 图表样式
+       ============================================ */
+    .diagram-container {
+      position: relative;  /* 为全览按钮提供定位上下文 */
+      width: 100%;
+      min-height: 400px;
+      background: hsl(var(--background));
+      border: 1px solid hsl(var(--border));
       border-radius: var(--radius);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      position: relative;
+      margin: 16px 0;
       overflow: hidden;
     }
 
-    .theme-toggle::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--gradient-primary);
-      opacity: 0;
-      transition: opacity var(--transition-fast);
-    }
-
-    .theme-toggle:hover {
-      border-color: var(--primary);
-      transform: translateY(-1px);
-      box-shadow: var(--card-shadow);
-    }
-
-    .theme-toggle:hover::before {
-      opacity: 0.1;
-    }
-
-    .theme-toggle:active {
-      transform: translateY(0);
-    }
-
-    .theme-toggle:focus-visible {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
-    }
-
-    .theme-toggle svg {
-      width: 18px;
-      height: 18px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ============================================
-       Sidebar - Modern Elevation Design
-       ============================================ */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--sidebar-border);
-      position: fixed;
-      left: 0;
-      top: var(--header-height);
-      bottom: 0;
-      overflow-y: auto;
-      padding: 28px 20px;
-
-      /* Firefox scrollbar */
-      scrollbar-width: thin;
-      scrollbar-color: transparent transparent;
-
-      /* Webkit scrollbar */
-      transition: scrollbar-color 0.3s;
-    }
-
-    /* Show scrollbar on hover or when scrolling */
-    .sidebar:hover,
-    .sidebar.scrolling {
-      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-    }
-
-    /* Webkit scrollbar styling */
-    .sidebar::-webkit-scrollbar {
-      width: 5px;
-    }
-
-    .sidebar::-webkit-scrollbar-track {
-      background: var(--scrollbar-track);
-    }
-
-    .sidebar::-webkit-scrollbar-thumb {
-      background: transparent;
-      border-radius: 10px;
-      transition: background 0.3s;
-    }
-
-    .sidebar:hover::-webkit-scrollbar-thumb,
-    .sidebar.scrolling::-webkit-scrollbar-thumb {
-      background: var(--scrollbar-thumb);
-    }
-
-    .sidebar:hover::-webkit-scrollbar-thumb:hover,
-    .sidebar.scrolling::-webkit-scrollbar-thumb:hover {
-      background: var(--scrollbar-thumb-hover);
-    }
-
-    .sidebar-header {
-      margin-bottom: 28px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .doc-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--foreground);
-      letter-spacing: -0.02em;
-      line-height: 1.3;
-    }
-
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      padding: 10px 14px;
-      border-radius: var(--radius);
-      color: var(--muted-foreground);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 450;
-      letter-spacing: -0.01em;
-      transition: all var(--transition-fast);
-      position: relative;
-      border: 1px solid transparent;
-    }
-
-    .nav-item::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 3px;
-      height: 0;
-      background: var(--primary);
-      border-radius: 0 2px 2px 0;
-      transition: height var(--transition-fast);
-    }
-
-    .nav-item:hover {
-      background: var(--card-bg);
-      color: var(--foreground);
-      border-color: var(--border-subtle);
-    }
-
-    .nav-item:hover::before {
-      height: 16px;
-    }
-
-    .nav-item[data-active="true"] {
-      background: var(--card-bg);
-      color: var(--primary);
-      border-color: var(--border);
-      font-weight: 500;
-      box-shadow: var(--card-shadow);
-    }
-
-    .nav-item[data-active="true"]::before {
-      height: 20px;
-      background: var(--gradient-primary);
-    }
-
-    .nav-item:focus-visible {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
-    }
-
-    .nav-item[data-level="1"] { padding-left: 14px; font-weight: 500; }
-    .nav-item[data-level="2"] { padding-left: 28px; font-size: 13px; }
-    .nav-item[data-level="3"] { padding-left: 42px; font-size: 12px; opacity: 0.85; }
-
-    /* ============================================
-       Main Content - Modern Typography
-       ============================================ */
-    .main-content {
-      flex: 1;
-      margin-left: var(--sidebar-width);
-      margin-top: var(--header-height);
-      padding: 48px 56px;
-      max-width: 920px;
-    }
-
-    .content-header {
-      margin-bottom: 40px;
-      padding-bottom: 28px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .content-header h1 {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      letter-spacing: -0.03em;
-      line-height: 1.2;
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .content-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      font-size: 14px;
-      color: var(--muted-foreground);
-    }
-
-    .content-meta > * {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .content-body {
-      display: flex;
-      flex-direction: column;
-      gap: 40px;
-    }
-
-    section[data-region="true"] {
-      scroll-margin-top: calc(var(--header-height) + 24px);
-    }
-
-    section h2 {
-      font-size: 26px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid var(--border-subtle);
-      letter-spacing: -0.02em;
-      position: relative;
-    }
-
-    section h2::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 48px;
-      height: 2px;
-      background: var(--gradient-primary);
-      border-radius: 2px;
-    }
-
-    section h3 {
-      font-size: 19px;
-      font-weight: 600;
-      margin: 32px 0 16px;
-      letter-spacing: -0.01em;
-      color: var(--foreground);
-    }
-
-    section h4 {
+    .diagram-title {
       font-size: 16px;
       font-weight: 600;
-      margin: 24px 0 12px;
-      letter-spacing: -0.01em;
+      color: hsl(var(--foreground));
+      padding: 16px 16px 0;
+      text-align: center;
     }
 
-    section p {
-      margin-bottom: 16px;
-      line-height: 1.75;
-      color: var(--foreground);
-    }
-
-    section ul, section ol {
-      margin: 16px 0;
-      padding-left: 24px;
-    }
-
-    section li {
-      margin-bottom: 8px;
-      line-height: 1.65;
-    }
-
-    section li::marker {
-      color: var(--primary);
-    }
-
-    /* Code blocks */
-    section pre {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 20px;
-      overflow-x: auto;
-      margin: 16px 0;
-      box-shadow: var(--card-shadow);
-    }
-
-    section code {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      background: var(--muted);
-      padding: 2px 6px;
-      border-radius: var(--radius-sm);
-    }
-
-    section pre code {
-      background: transparent;
-      padding: 0;
-    }
-
-    /* Blockquotes */
-    section blockquote {
-      border-left: 3px solid var(--primary);
-      padding-left: 20px;
-      margin: 20px 0;
-      color: var(--muted-foreground);
-      font-style: italic;
-    }
-
-    /* Tables */
-    section table {
+    .diagram-canvas {
       width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      font-size: 14px;
+      height: 400px;
     }
 
-    section th, section td {
-      padding: 12px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
+    .diagram-popover {
+      background: hsl(var(--popover));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      max-width: 300px;
     }
 
-    section th {
+    .diagram-popover .popover-title {
       font-weight: 600;
-      background: var(--muted);
+      margin-bottom: 4px;
+      color: hsl(var(--popover-foreground));
     }
 
-    section tr:hover td {
-      background: var(--muted);
+    .diagram-popover .popover-desc {
+      font-size: 14px;
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 8px;
     }
 
-    /* Links */
-    section a {
-      color: var(--primary);
-      text-decoration: none;
-      transition: color var(--transition-fast);
+    .diagram-popover .popover-meta {
+      font-size: 12px;
+      color: hsl(var(--muted-foreground));
     }
 
-    section a:hover {
-      text-decoration: underline;
+    .diagram-popover .popover-meta span {
+      display: inline-block;
+      margin-right: 12px;
+      margin-bottom: 4px;
+    }
+
+    .diagram-popover .popover-meta b {
+      color: hsl(var(--foreground));
     }
 
     /* ============================================
-       Responsive Design
+       图表全览按钮
        ============================================ */
-    @media (max-width: 1024px) {
-      .main-content {
-        padding: 40px 32px;
-        max-width: 100%;
-      }
-
-      .content-header h1 {
-        font-size: 28px;
-      }
-
-      section h2 {
-        font-size: 22px;
-      }
+    .diagram-fullscreen-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: hsl(var(--background));
+      border: 1px solid hsl(var(--border));
+      border-radius: 6px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s, background 0.2s;
+      z-index: 10;
     }
 
-    @media (max-width: 768px) {
-      .top-header {
-        padding: 0 20px;
-      }
-
-      .header-title {
-        font-size: 14px;
-      }
-
-      .header-tags {
-        display: none;
-      }
-
-      .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        top: var(--header-height);
-        z-index: 50;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
-      }
-
-      .sidebar.open {
-        transform: translateX(0);
-      }
-
-      .main-content {
-        margin-left: 0;
-        padding: 32px 20px;
-      }
-
-      .content-header {
-        margin-bottom: 28px;
-        padding-bottom: 20px;
-      }
-
-      .content-header h1 {
-        font-size: 24px;
-      }
-
-      section h2 {
-        font-size: 20px;
-      }
-
-      section h3 {
-        font-size: 17px;
-      }
-
-      section pre {
-        padding: 12px 16px;
-        font-size: 12px;
-      }
+    .diagram-fullscreen-btn:hover {
+      opacity: 1;
+      background: hsl(var(--muted));
     }
 
-    /* Print styles */
-    @media print {
-      .top-header,
-      .sidebar,
-      .theme-toggle {
-        display: none !important;
-      }
-
-      .main-content {
-        margin: 0;
-        padding: 0;
-        max-width: 100%;
-      }
-
-      .content-header h1 {
-        -webkit-text-fill-color: var(--foreground);
-      }
+    .diagram-fullscreen-btn svg {
+      width: 16px;
+      height: 16px;
+      color: hsl(var(--muted-foreground));
     }
 
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
+    /* ============================================
+       隐藏图表容器滚动条
+       ============================================ */
+    .flowchart-container,
+    .architecture-diagram,
+    .diagram-container {
+      scrollbar-width: none;           /* Firefox */
+      -ms-overflow-style: none;        /* IE/Edge */
+    }
 
-      html {
-        scroll-behavior: auto;
-      }
+    .flowchart-container::-webkit-scrollbar,
+    .architecture-diagram::-webkit-scrollbar,
+    .diagram-container::-webkit-scrollbar {
+      display: none;                   /* Chrome/Safari/Opera */
     }
   </style>
 </head>
-<body>
+<body class="bg-background text-foreground antialiased">
   <!-- Fixed Top Header -->
-  <header class="top-header">
-    <div class="header-left">
-      <span class="header-title" data-fill="header-title">{{doc-title}}</span>
-      <div class="header-tags" data-fill="header-tags">
-        <!-- Tags will be populated dynamically -->
+  <header class="fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-sm border-b z-50">
+    <div class="flex items-center justify-between h-full px-8">
+      <div class="flex items-center gap-4">
+        <span class="text-sm font-semibold" data-fill="header-title">{{doc-title}}</span>
+        <div class="flex gap-2" data-fill="header-tags">
+          <!-- Tags populated by Agent -->
+        </div>
       </div>
-    </div>
-    <div class="header-actions">
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-        <i data-lucide="sun" class="icon-sun"></i>
-        <i data-lucide="moon" class="icon-moon" style="display: none;"></i>
-      </button>
+      <div class="flex items-center gap-3">
+        <button
+          onclick="toggleTheme()"
+          class="inline-flex items-center justify-center w-10 h-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+          aria-label="Toggle theme"
+        >
+          <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <div class="app-container">
+  <div class="flex min-h-screen pt-16 justify-center">
     <!-- Sidebar Navigation -->
-    <aside class="sidebar" data-fill="sidebar">
-      <div class="sidebar-header">
-        <h1 class="doc-title" data-fill="doc-title">目录</h1>
+    <aside class="w-[280px] fixed left-0 top-16 bottom-0 bg-muted/30 border-r overflow-y-auto p-6">
+      <div class="mb-6 pb-4 border-b">
+        <h1 class="text-lg font-bold" data-fill="doc-title">目录</h1>
       </div>
-      <nav class="sidebar-nav" data-fill="nav">
-        <!-- Main Agent fills navigation items -->
+      <nav class="space-y-1" data-fill="nav">
+        <!-- Navigation items populated by Main Agent -->
+        <!-- FORMAT WITH PROGRESS BADGE:
+        <div class="nav-item-wrapper">
+          <a href="#section-N" class="nav-item flex-1 block px-3 py-2 rounded-md text-sm hover:bg-accent">章节标题</a>
+          <span class="nav-progress-badge" data-section="section-N">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+            </svg>
+            编写中
+          </span>
+        </div>
+        -->
       </nav>
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content">
-      <header class="content-header" data-fill="header">
-        <!-- Main Agent fills document meta info -->
+    <main class="flex-1 ml-[280px] p-12 max-w-5xl">
+      <!-- Document Header: H1 + Meta Info (filled by Main Agent) -->
+      <header class="mb-10 pb-6 border-b" data-fill="header">
+        <!-- MAIN AGENT: Fill with H1 title + document meta info (version, date, status, etc.) -->
+        <!-- FORMAT EXAMPLE:
+        <h1 class="text-3xl font-bold tracking-tight">文档标题</h1>
+        <div class="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
+          <span><strong>版本：</strong>v1.0</span>
+          <span><strong>日期：</strong>2026-03-24</span>
+          <span><strong>状态：</strong>待确认</span>
+        </div>
+        -->
       </header>
 
-      <article class="content-body" data-fill="content">
-        <!-- Sections generated dynamically -->
+      <article class="space-y-10" data-fill="content">
+        <!-- ============================================
+             SECTIONS GENERATED BY MAIN AGENT
+             Each section has a placeholder for SubAgent
+             ============================================ -->
+
+        <!-- SECTION TEMPLATE WITH SKELETON (repeated for each H2):
+        <section id="section-N" data-region="true" class="scroll-mt-20">
+          <h2 class="text-2xl font-bold tracking-tight mb-4 pb-2 border-b">章节标题</h2>
+          <div class="space-y-6" data-fill="section-section-N" data-section-id="section-N">
+            <div class="skeleton-container" data-skeleton="section-N">
+              <div class="skeleton skeleton-title"></div>
+              <div class="skeleton skeleton-text full"></div>
+              <div class="skeleton skeleton-text medium"></div>
+              <div class="skeleton skeleton-text short"></div>
+              <div class="skeleton skeleton-card"></div>
+              <div class="skeleton skeleton-text full"></div>
+              <div class="skeleton skeleton-text medium"></div>
+            </div>
+            <!-- SUBAGENT: FILL section-section-N -->
+          </div>
+        </section>
+        -->
+
+        {{sections}}
       </article>
     </main>
   </div>
 
-  <!-- Interaction Scripts -->
   <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
     /* ============================================
        Theme Management
        ============================================ */
@@ -807,8 +834,11 @@
 
     function setTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
-      updateThemeIcons(theme);
-      updateMermaidTheme(theme);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
       localStorage.setItem(THEME_KEY, theme);
     }
 
@@ -818,34 +848,13 @@
       setTheme(newTheme);
     }
 
-    function updateThemeIcons(theme) {
-      const sunIcon = document.querySelector('.icon-sun');
-      const moonIcon = document.querySelector('.icon-moon');
-      if (theme === 'dark') {
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-      } else {
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
-      }
-    }
-
-    function updateMermaidTheme(theme) {
-      // Mermaid theme must be configured before rendering
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: theme === 'dark' ? 'dark' : 'default'
-      });
-    }
-
-    // Initialize theme on page load
+    // Initialize theme
     (function initTheme() {
       const storedTheme = getStoredTheme();
       if (storedTheme) {
         setTheme(storedTheme);
       } else {
-        const systemTheme = getSystemTheme();
-        setTheme(systemTheme);
+        setTheme(getSystemTheme());
       }
     })();
 
@@ -857,29 +866,8 @@
     });
 
     /* ============================================
-       Scrollbar Visibility
-       ============================================ */
-    const sidebar = document.querySelector('.sidebar');
-    let scrollTimeout;
-
-    sidebar.addEventListener('scroll', () => {
-      sidebar.classList.add('scrolling');
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        sidebar.classList.remove('scrolling');
-      }, 1000);
-    });
-
-    /* ============================================
        Navigation Sync with IntersectionObserver
        ============================================ */
-    // Initialize Lucide icons
-    lucide.createIcons();
-
-    // Initialize Highlight.js
-    hljs.highlightAll();
-
-    // Scroll spy for navigation
     const sections = document.querySelectorAll('section[data-region="true"]');
     const navItems = document.querySelectorAll('.nav-item');
 
@@ -894,7 +882,8 @@
         if (entry.isIntersecting) {
           navItems.forEach(item => {
             const isActive = item.getAttribute('href') === '#' + entry.target.id;
-            item.dataset.active = isActive;
+            item.classList.toggle('bg-accent', isActive);
+            item.classList.toggle('text-accent-foreground', isActive);
           });
         }
       });
@@ -902,7 +891,7 @@
 
     sections.forEach(section => observer.observe(section));
 
-    // Smooth scroll for navigation items
+    // Smooth scroll for navigation
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
@@ -913,6 +902,493 @@
         }
       });
     });
+
+    /* ============================================
+       Accordion Interaction
+       ============================================ */
+    document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+      trigger.addEventListener('click', function() {
+        const item = this.closest('.accordion-item');
+        const isOpen = item.getAttribute('data-state') === 'open';
+
+        // Toggle state
+        item.setAttribute('data-state', isOpen ? 'closed' : 'open');
+      });
+    });
+  </script>
+
+  <!-- YGDiagram Canvas 渲染引擎 -->
+  <script>
+/**
+ * yg-diagram - Canvas 图表渲染引擎 (IIFE Bundle)
+ * 基于 Konva.js 实现，可直接在浏览器中使用
+ */
+(function(global) {
+  'use strict';
+
+  // 默认配置
+  var DEFAULT_CONFIG = {
+    padding: 40,
+    nodeSpacing: { x: 80, y: 60 },
+    fontSize: { title: 16, label: 14, edge: 12 },
+    borderRadius: 8,
+  };
+
+  var THEMES = {
+    light: {
+      background: '#ffffff',
+      text: '#1e293b',
+      node: {
+        primary: '#3b82f6',
+        secondary: '#8b5cf6',
+        tertiary: '#64748b',
+        success: '#10b981',
+        warning: '#f59e0b',
+        danger: '#ef4444',
+        info: '#06b6d4',
+        neutral: '#64748b',
+      },
+      edge: { default: '#94a3b8', highlight: '#3b82f6' },
+    },
+    dark: {
+      background: '#1e293b',
+      text: '#f1f5f9',
+      node: {
+        primary: '#60a5fa',
+        secondary: '#a78bfa',
+        tertiary: '#94a3b8',
+        success: '#34d399',
+        warning: '#fbbf24',
+        danger: '#f87171',
+        info: '#22d3ee',
+        neutral: '#94a3b8',
+      },
+      edge: { default: '#64748b', highlight: '#60a5fa' },
+    },
+  };
+
+  var DIAGRAM_TYPES = ['flowchart', 'architecture', 'sequence', 'statechart', 'er-diagram', 'gantt', 'mindmap', 'network'];
+
+  // 核心渲染器
+  function DiagramCore(container, config) {
+    this.container = container;
+    this.config = config;
+    this.stage = null;
+    this.mainLayer = null;
+    this.titleLayer = null;
+    this.nodes = new Map();
+    this.edges = [];
+    this.init();
+  }
+
+  DiagramCore.prototype.init = function() {
+    var rect = this.container.getBoundingClientRect();
+    var width = rect.width || 800;
+    var height = Math.max(rect.height || 400, 400);
+
+    this.stage = new Konva.Stage({ container: this.container, width: width, height: height });
+    this.titleLayer = new Konva.Layer();
+    this.stage.add(this.titleLayer);
+    this.mainLayer = new Konva.Layer();
+    this.stage.add(this.mainLayer);
+
+    this.renderBackground();
+    this.renderTitle();
+    this.renderDiagram();
+    this.setupThemeObserver();  // 新增：设置主题监听
+  };
+
+  DiagramCore.prototype.renderBackground = function() {
+    this.container.style.backgroundColor = this.config.theme.background;
+  };
+
+  DiagramCore.prototype.renderTitle = function() {
+    if (this.config.title) {
+      var title = new Konva.Text({
+        text: this.config.title,
+        fontSize: this.config.fontSize.title,
+        fontStyle: '600',
+        fill: this.config.theme.text,
+        x: this.stage.width() / 2,
+        y: 10,
+        align: 'center',
+      });
+      title.offsetX(title.width() / 2);
+      this.titleLayer.add(title);
+    }
+  };
+
+  DiagramCore.prototype.renderDiagram = function() {
+    var positions = this.calculateLayout();
+    this.renderEdges(positions.edges);
+    this.renderNodes(positions.nodes);
+    if (positions.layerLabels) this.renderLayerLabels(positions.layerLabels);
+    this.addFullscreenBtn();  // 添加全览按钮
+    this.applyInteractions();
+    this.fitToView();
+  };
+
+  DiagramCore.prototype.calculateLayout = function() {
+    var self = this;
+    var type = this.config.type;
+    var nodes = [];
+    var edges = [];
+    var layerLabels = [];
+    var startY = this.config.title ? 50 : 20;
+    var spacing = this.config.nodeSpacing;
+
+    if (type === 'architecture' && this.config.layers) {
+      // 架构图：处理 layers 结构
+      var layerY = startY;
+      var layerSep = 120;
+      var nodeSep = 30;
+      var nodeWidth = 140;
+      var nodeHeight = 60;
+
+      this.config.layers.forEach(function(layer) {
+        layerLabels.push({ label: layer.label, x: 20, y: layerY + nodeHeight / 2 });
+
+        var layerNodes = layer.nodes || [];
+        var totalWidth = layerNodes.length * nodeWidth + (layerNodes.length - 1) * nodeSep;
+        var startX = Math.max(20, (self.stage.width() - totalWidth) / 2);
+
+        layerNodes.forEach(function(node, nodeIndex) {
+          nodes.push({
+            ...node,
+            x: startX + nodeIndex * (nodeWidth + nodeSep),
+            y: layerY,
+            width: nodeWidth,
+            height: nodeHeight,
+            layerId: layer.id,
+          });
+        });
+
+        layerY += nodeHeight + layerSep;
+      });
+
+      var edgeList = this.config.edges || this.config.connections || [];
+      edgeList.forEach(function(edge) {
+        var fromNode = nodes.find(function(n) { return n.id === edge.from; });
+        var toNode = nodes.find(function(n) { return n.id === edge.to; });
+        if (fromNode && toNode) {
+          edges.push({
+            ...edge,
+            fromX: fromNode.x + fromNode.width / 2,
+            fromY: fromNode.y + fromNode.height,
+            toX: toNode.x + toNode.width / 2,
+            toY: toNode.y,
+          });
+        }
+      });
+    } else {
+      // 其他图表类型
+      var nodeList = this.config.nodes || [];
+      var edgeList = this.config.edges || this.config.connections || this.config.messages || [];
+
+      nodeList.forEach(function(node, index) {
+        nodes.push({
+          ...node,
+          x: (self.stage.width() - 120) / 2,
+          y: startY + index * (spacing.y + 60),
+          width: 120,
+          height: 40,
+        });
+      });
+
+      edgeList.forEach(function(edge) {
+        var fromNode = nodes.find(function(n) { return n.id === edge.from; });
+        var toNode = nodes.find(function(n) { return n.id === edge.to; });
+        if (fromNode && toNode) {
+          edges.push({
+            ...edge,
+            fromX: fromNode.x + fromNode.width / 2,
+            fromY: fromNode.y + fromNode.height,
+            toX: toNode.x + toNode.width / 2,
+            toY: toNode.y,
+          });
+        }
+      });
+    }
+
+    return { nodes: nodes, edges: edges, layerLabels: layerLabels };
+  };
+
+  DiagramCore.prototype.renderLayerLabels = function(layerLabels) {
+    var self = this;
+    layerLabels.forEach(function(label) {
+      var text = new Konva.Text({
+        text: label.label,
+        fontSize: 12,
+        fontStyle: '500',
+        fill: self.config.theme.text,
+        opacity: 0.7,
+        x: label.x,
+        y: label.y,
+      });
+      self.mainLayer.add(text);
+    });
+  };
+
+  DiagramCore.prototype.renderNodes = function(nodes) {
+    var self = this;
+    nodes.forEach(function(node) {
+      var group = new Konva.Group({ x: node.x, y: node.y });
+      group.setAttr('id', node.id);
+
+      var shape = self.createNodeShape(node);
+      group.add(shape);
+
+      var label = node.label || '';
+      var lines = label.split('\n');
+      var lineHeight = 16;
+      var textY = (node.height - lines.length * lineHeight) / 2;
+
+      lines.forEach(function(line, index) {
+        var text = new Konva.Text({
+          text: line,
+          fontSize: self.config.fontSize.label,
+          fill: '#ffffff',
+          width: node.width,
+          align: 'center',
+          y: textY + index * lineHeight,
+        });
+        group.add(text);
+      });
+
+      if (node.popover) group.setAttr('popover', node.popover);
+
+      self.mainLayer.add(group);
+      self.nodes.set(node.id, group);
+    });
+  };
+
+  DiagramCore.prototype.createNodeShape = function(node) {
+    var type = node.type || 'primary';
+    var fill = this.config.theme.node[type] || this.config.theme.node.primary;
+
+    return new Konva.Rect({
+      width: node.width,
+      height: node.height,
+      fill: fill,
+      cornerRadius: this.config.borderRadius,
+      shadowColor: 'rgba(0,0,0,0.1)',
+      shadowBlur: 4,
+      shadowOffset: { x: 0, y: 2 },
+    });
+  };
+
+  DiagramCore.prototype.renderEdges = function(edges) {
+    var self = this;
+    edges.forEach(function(edge) {
+      var line = new Konva.Arrow({
+        points: [edge.fromX, edge.fromY, edge.toX, edge.toY],
+        stroke: self.config.theme.edge.default,
+        strokeWidth: 2,
+        pointerLength: 10,
+        pointerWidth: 10,
+      });
+      self.mainLayer.add(line);
+      self.edges.push(line);
+
+      if (edge.label) {
+        var midX = (edge.fromX + edge.toX) / 2;
+        var midY = (edge.fromY + edge.toY) / 2;
+
+        var label = new Konva.Label({ x: midX, y: midY });
+        label.add(new Konva.Tag({
+          fill: self.config.theme.background,
+          stroke: self.config.theme.edge.default,
+          strokeWidth: 1,
+          cornerRadius: 4,
+        }));
+        label.add(new Konva.Text({
+          text: edge.label,
+          fontSize: self.config.fontSize.edge,
+          fill: self.config.theme.text,
+          padding: 4,
+        }));
+        self.mainLayer.add(label);
+      }
+    });
+  };
+
+  DiagramCore.prototype.applyInteractions = function() {
+    if (this.config.interactive && this.config.interactive.zoomable !== false) {
+      this.enableZoomPan();
+    }
+    if (this.config.interactive && this.config.interactive.hoverHighlight !== false) {
+      this.enableHover();
+    }
+  };
+
+  DiagramCore.prototype.enableZoomPan = function() {
+    var scale = 1;
+    var stage = this.stage;
+
+    stage.on('wheel', function(e) {
+      e.evt.preventDefault();
+      var oldScale = scale;
+      var pointer = stage.getPointerPosition();
+
+      scale = e.evt.deltaY > 0 ? oldScale * 0.9 : oldScale * 1.1;
+      scale = Math.max(0.1, Math.min(5, scale));
+
+      stage.scale({ x: scale, y: scale });
+      stage.position({
+        x: pointer.x - (pointer.x - stage.x()) * (scale / oldScale),
+        y: pointer.y - (pointer.y - stage.y()) * (scale / oldScale),
+      });
+      stage.batchDraw();
+    });
+
+    stage.draggable(true);
+  };
+
+  DiagramCore.prototype.enableHover = function() {
+    var self = this;
+    this.nodes.forEach(function(group) {
+      group.on('mouseenter', function() {
+        document.body.style.cursor = 'pointer';
+        group.scale({ x: 1.05, y: 1.05 });
+        self.mainLayer.batchDraw();
+      });
+      group.on('mouseleave', function() {
+        document.body.style.cursor = 'default';
+        group.scale({ x: 1, y: 1 });
+        self.mainLayer.batchDraw();
+      });
+    });
+  };
+
+  DiagramCore.prototype.addFullscreenBtn = function() {
+    var self = this;
+
+    // 创建按钮
+    var btn = document.createElement('button');
+    btn.className = 'diagram-fullscreen-btn';
+    btn.title = '显示全览';
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+
+    // 点击事件：重置为全览视图
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      self.fitToView();
+    });
+
+    this.container.appendChild(btn);
+    this.fullscreenBtn = btn;
+  };
+
+  DiagramCore.prototype.setupThemeObserver = function() {
+    var self = this;
+
+    this.themeObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.attributeName === 'data-theme' || mutation.attributeName === 'class') {
+          self.updateTheme();
+        }
+      });
+    });
+
+    this.themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'class']
+    });
+  };
+
+  DiagramCore.prototype.updateTheme = function() {
+    // 获取当前主题
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+                 document.documentElement.classList.contains('dark');
+    var currentTheme = isDark ? 'dark' : 'light';
+
+    // 更新配置
+    this.config.theme = THEMES[currentTheme];
+
+    // 重新渲染 Canvas 元素（全览按钮使用 CSS 变量，无需重新创建）
+    this.renderBackground();
+    this.titleLayer.destroyChildren();
+    this.mainLayer.destroyChildren();
+    this.renderTitle();
+
+    var positions = this.calculateLayout();
+    this.renderEdges(positions.edges);
+    this.renderNodes(positions.nodes);
+    if (positions.layerLabels) this.renderLayerLabels(positions.layerLabels);
+
+    this.fitToView();
+  };
+
+  DiagramCore.prototype.fitToView = function() {
+    var clientRect = this.container.getBoundingClientRect();
+    var stageRect = this.stage.getClientRect({ skipTransform: true });
+
+    var scaleX = clientRect.width / (stageRect.width + this.config.padding * 2);
+    var scaleY = clientRect.height / (stageRect.height + this.config.padding * 2);
+    var scale = Math.min(scaleX, scaleY, 1);
+
+    this.stage.scale({ x: scale, y: scale });
+    this.stage.position({ x: this.config.padding, y: this.config.padding });
+    this.stage.draw();
+  };
+
+  DiagramCore.prototype.destroy = function() {
+    if (this.themeObserver) {
+      this.themeObserver.disconnect();
+      this.themeObserver = null;
+    }
+    if (this.fullscreenBtn) {
+      this.fullscreenBtn.remove();
+      this.fullscreenBtn = null;
+    }
+    if (this.stage) {
+      this.stage.destroy();
+    }
+    this.nodes.clear();
+    this.edges = [];
+  };
+
+  // YGDiagram 主类
+  function YGDiagram() {
+    this.instances = new Map();
+  }
+
+  YGDiagram.prototype.render = function(container, config) {
+    var el = typeof container === 'string' ? document.querySelector(container) : container;
+    if (!el) {
+      console.error('YGDiagram: Container not found');
+      return null;
+    }
+
+    if (!config || !config.type) {
+      console.error('YGDiagram: Missing required field "type"');
+      return null;
+    }
+
+    var mergedConfig = {
+      ...DEFAULT_CONFIG,
+      ...config,
+      theme: THEMES[config.theme || 'light'],
+    };
+
+    var instance = new DiagramCore(el, mergedConfig);
+    var instanceId = 'diagram-' + Date.now();
+    this.instances.set(instanceId, instance);
+    return instance;
+  };
+
+  YGDiagram.prototype.destroy = function(instanceId) {
+    var instance = this.instances.get(instanceId);
+    if (instance) {
+      instance.destroy();
+      this.instances.delete(instanceId);
+    }
+  };
+
+  // 导出到全局
+  global.YGDiagram = new YGDiagram();
+
+})(typeof window !== 'undefined' ? window : this);
   </script>
 </body>
 </html>
