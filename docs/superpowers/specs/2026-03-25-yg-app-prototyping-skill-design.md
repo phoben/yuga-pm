@@ -172,7 +172,7 @@ Main Agent                    Coder Agent                  Reviewer Agent
 - ✅ Coder Agent runs linting/formatting checks only
 - ✅ Separate Reviewer Agent handles actual code review
 
-### 3.2 Writer Agent
+### 3.3 Writer Agent
 
 **File:** `agents/drd-writer.md`
 
