@@ -262,66 +262,99 @@ Skill(skill: "shadcn")
 
 ## 图表渲染方案选型
 
-当识别到 ASCII 图表后，需先决定渲染方案：
-
 ### 选型决策表
 
 | 条件 | 推荐方案 | 理由 |
 |------|----------|------|
-| 节点数 > 8 | yg-diagram Canvas | 复杂布局需要自动排列 |
-| 需要交互（缩放/平移/弹出详情） | yg-diagram Canvas | Canvas 支持交互功能 |
-| 分支/并行结构 > 3 层 | yg-diagram Canvas | 复杂流向难以用 HTML 布局 |
-| 简单流程（节点 ≤ 8） | HTML flowchart 组件 | 轻量、快速渲染、SEO 友好 |
-| 打印/静态展示/嵌入邮件 | HTML flowchart 组件 | 兼容性好，无 JS 依赖 |
-| 需要导出为图片 | yg-diagram Canvas | Canvas 支持导出功能 |
+| 流程图/时序图/状态图/ER图/甘特图/思维导图 | Mermaid | 语法简洁，渲染可靠 |
+| 系统架构图/网络拓扑图 | Canvas 原生绘制 | 需要精确控制布局 |
+| 简单数据展示 | HTML 组件 | 轻量、SEO 友好 |
 
 ### 选型流程
 
 ```
-检测到 ASCII 图表
+检测到图表需求
         │
         ▼
 ┌───────────────────┐
-│ 节点数 > 8 ?      │──是──► Canvas 渲染
+│ 图表类型?          │
 └───────────────────┘
-        │否
-        ▼
-┌───────────────────┐
-│ 需要交互功能?      │──是──► Canvas 渲染
-└───────────────────┘
-        │否
-        ▼
-┌───────────────────┐
-│ 结构简单（≤3层）?  │──是──► HTML 组件
-└───────────────────┘
-        │否
-        ▼
-    Canvas 渲染
+        │
+        ├─ 流程图/时序图/状态图/ER图/甘特图/思维导图
+        │       │
+        │       ▼
+        │   Mermaid 渲染
+        │
+        ├─ 系统架构图/网络拓扑图/蓝图
+        │       │
+        │       ▼
+        │   Canvas 原生绘制
+        │
+        └─ 简单数据展示
+                │
+                ▼
+            HTML 组件
 ```
 
-### Canvas 渲染参考
-
-选择 Canvas 渲染时，参考 `${CLAUDE_SKILL_DIR}/references/yg-diagram-spec.md` 生成 JSON 配置：
+### Mermaid 渲染模板
 
 ```html
-<div id="diagram-container" style="width: 100%; min-height: 400px;"></div>
-<script id="diagram-config" type="application/json">
-{
-  "type": "flowchart",
-  "title": "图表标题",
-  "nodes": [...],
-  "edges": [...]
-}
-</script>
-<script>
-YGDiagram.render(document.getElementById('diagram-container'),
-  JSON.parse(document.getElementById('diagram-config').textContent));
-</script>
+<div class="diagram-container">
+  <div class="diagram-title">图表标题</div>
+  <pre class="mermaid">
+flowchart TD
+    A[开始] --> B[结束]
+  </pre>
+</div>
 ```
 
-### HTML 组件渲染参考
+**注意事项：**
+- Mermaid 代码必须放在 `<pre class="mermaid">` 标签内
+- 页面加载时 Mermaid 会自动渲染所有 `.mermaid` 元素
+- 参考 `${CLAUDE_SKILL_DIR}/references/diagram-conversion.md` 获取语法详情
 
-选择 HTML 组件渲染时，继续使用下方的「图表转换规则」章节。
+### Canvas 原生绘制模板
+
+适用于系统架构图、网络拓扑图等需要精确控制布局的场景：
+
+```html
+<div class="canvas-blueprint">
+  <span class="canvas-blueprint-title">系统架构图</span>
+  <canvas id="blueprint-{unique-id}"></canvas>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('blueprint-{unique-id}');
+  const ctx = canvas.getContext('2d');
+
+  // 设置画布尺寸
+  function resize() {
+    canvas.width = canvas.parentElement.offsetWidth;
+    canvas.height = 400;
+    draw();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 绘制节点、连接线等
+    // 示例：绘制一个蓝色矩形
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(50, 50, 120, 60);
+
+    // 添加文字
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('服务节点', 110, 85);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+})();
+</script>
+```
 
 ---
 
@@ -510,69 +543,6 @@ YGDiagram.render(document.getElementById('diagram-container'),
 | 外部服务 | `cloud` |
 
 ---
-
-## 🆕 yg-diagram Canvas 图表（推荐）
-
-### 使用方式
-
-当识别到图表需求时，优先使用 yg-diagram Canvas 方案：
-
-**步骤 1: 选择图表类型**
-
-参考 `${CLAUDE_SKILL_DIR}/references/yg-diagram-spec.md` 选择合适的图表类型。
-
-**步骤 2: 生成 JSON 配置**
-
-根据规范生成符合格式的 JSON 配置。
-
-**步骤 3: 嵌入 HTML 模板**
-
-```html
-<div class="diagram-container">
-  <div class="diagram-title">图表标题</div>
-  <div id="diagram-{unique-id}" class="diagram-canvas"></div>
-</div>
-
-<script id="diagram-config-{unique-id}" type="application/json">
-{
-  "type": "flowchart",
-  "title": "流程标题",
-  "nodes": [
-    {"id": "start", "label": "开始", "type": "terminal"},
-    {"id": "end", "label": "结束", "type": "terminal"}
-  ],
-  "edges": [
-    {"from": "start", "to": "end"}
-  ]
-}
-</script>
-
-<script>
-(function() {
-  const config = JSON.parse(document.getElementById('diagram-config-{unique-id}').textContent);
-  YGDiagram.render('#diagram-{unique-id}', config);
-})();
-</script>
-```
-
-### 图表类型选择
-
-| 场景 | 推荐类型 |
-|------|---------|
-| 业务流程、决策流程 | `flowchart` |
-| 系统架构、分层架构 | `architecture` |
-| 接口调用、交互流程 | `sequence` |
-| 状态流转、生命周期 | `statechart` |
-| 数据模型、表关系 | `er-diagram` |
-| 项目计划、时间线 | `gantt` |
-| 知识结构、功能分解 | `mindmap` |
-| 部署架构、网络结构 | `network` |
-
-### 优先级
-
-```
-yg-diagram Canvas 方案 > HTML 组件方案 > ASCII 字符串（禁止）
-```
 
 ### 步骤 3.5: 布局决策
 
@@ -769,16 +739,15 @@ Read(file_path="{output_html_path}", offset=目标行附近, limit=20)
 完成填充后，逐项检查：
 
 **选型决策:**
-- [ ] 图表渲染方案已根据节点数和交互需求正确选择
 - [ ] H3 子章节处理方式已根据内容长度合理选择
 - [ ] 列表组件已根据列表特征选择合适样式
 - [ ] 响应式布局已考虑移动端和桌面端差异
 
 **图表转换（如适用）:**
-- [ ] 所有 ASCII 图表已转换为 HTML 或 Canvas 组件
+- [ ] 所有图表已选择正确的渲染方案（Mermaid/Canvas/HTML）
+- [ ] Mermaid 代码正确包裹在 `<pre class="mermaid">` 中
+- [ ] Canvas 蓝图代码正确初始化画布尺寸
 - [ ] 无 `<pre>` 包裹的 ASCII 字符串图表
-- [ ] Canvas 图表 JSON 配置正确（节点 ID 唯一、连线引用有效）
-- [ ] HTML 流程图节点类型正确（start/end/process/decision）
 
 **完整性:**
 - [ ] 所有内容都已转换为 HTML
@@ -823,7 +792,6 @@ Read(file_path="{output_html_path}", offset=目标行附近, limit=20)
 | 文档 | 路径 | 用途 |
 |------|------|------|
 | 图表转换参考 | `${CLAUDE_SKILL_DIR}/references/diagram-conversion.md` | ASCII 图表识别与 HTML 转换详细指南 |
-| yg-diagram 规范 | `${CLAUDE_SKILL_DIR}/references/yg-diagram-spec.md` | Canvas 图表 JSON 配置规范（推荐） |
 | shadcn 技能 | 内置 Skill | 组件样式和使用指南 |
 
 ---

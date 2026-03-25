@@ -107,7 +107,7 @@ else:
 ### 步骤2: 执行脚本获取 outline
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/extract-outline.py" "$doc_path"
+python "${CLAUDE_SKILL_DIR}/scripts/extract-outline.py" "$doc_path"
 ```
 
 脚本输出格式：
@@ -162,6 +162,7 @@ ID 按文档顺序递增，确保唯一且有序。
 
 | 校验项 | 规则 | 失败处理 |
 |--------|------|----------|
+| extract-outline.py | 调用失败 | 尝试解决无果后拒绝执行 |
 | 文件格式 | 扩展名 `.md` | 拒绝执行 |
 | 标题结构 | 包含 H1 + ≥2 个 H2 | 提示使用 `/yg-document-writing` |
 
@@ -172,7 +173,7 @@ ID 按文档顺序递增，确保唯一且有序。
 ### 步骤1: 确定输出路径
 
 ```
-output_path = "{doc_dir}/{doc_name}.html"
+output_path = ".yg-pm/projects/{project_name}/visualizations/{doc_name}.html"
 ```
 
 ### 步骤2: 读取框架模板
@@ -515,31 +516,37 @@ TodoWrite({
 - ❌ 让 SubAgent 返回生成的 HTML（应直接写入文件）
 - ❌ 跳过 shadcn 技能调用
 - ❌ 使用非 shadcn 风格的自定义 CSS
-- ❌ **保留 ASCII 字符串图表（必须转换为 HTML 组件）**
+- ❌ **保留 ASCII 字符串图表（必须转换为 Mermaid 或 HTML 组件）**
 - ❌ **使用 `<pre>` 包裹 ASCII 图表**
+- ❌ **为简单图表使用 Canvas（优先 Mermaid）**
 
 ### 图表转换规范
 
-| 图表类型 | ASCII 特征 | 转换目标 |
-|---------|-----------|----------|
-| 流程图 | `┌───┐` `│` `▼` `►` | HTML flowchart 组件 |
-| 架构图 | 多层结构，分层标签 | HTML architecture 组件 |
-| 决策树 | `├─` `└─` 树形结构 | HTML flowchart 组件 |
+| 图表类型 | 转换目标 |
+|---------|----------|
+| 流程图 | Mermaid `flowchart` |
+| 时序图 | Mermaid `sequenceDiagram` |
+| 状态图 | Mermaid `stateDiagram` |
+| ER 图 | Mermaid `erDiagram` |
+| 甘特图 | Mermaid `gantt` |
+| 思维导图 | Mermaid `mindmap` |
+| 架构图/蓝图 | Canvas 原生绘制 |
 
-**转换规则详见:** `${CLAUDE_SKILL_DIR}/agents/fill-section.md` 中「图表转换规则」章节
+**转换规则详见:** `${CLAUDE_SKILL_DIR}/references/diagram-conversion.md` 中「Mermaid 语法参考」章节
 
 ### 图表渲染方案
 
-yg-visualize 支持两种图表渲染方案：
+yg-visualize 支持三种图表渲染方案：
 
 | 方案 | 技术 | 适用场景 |
 |------|------|---------|
-| **yg-diagram Canvas** | Konva.js | 复杂图表、多节点、需要交互（推荐） |
-| HTML 组件 | CSS | 简单图表、无需交互 |
+| **Mermaid** | Mermaid.js | 流程图、时序图、状态图、ER图、甘特图、思维导图 |
+| **Canvas 原生** | HTML Canvas | 系统架构图、网络拓扑图、蓝图 |
+| **HTML 组件** | CSS + HTML | 简单数据展示、打印场景 |
 
-**优先使用 yg-diagram Canvas 方案。**
+**优先使用 Mermaid 方案。**
 
-详细规范见：`${CLAUDE_SKILL_DIR}/references/yg-diagram-spec.md`
+详细规范见：`${CLAUDE_SKILL_DIR}/references/diagram-conversion.md`
 
 ### 最佳实践
 

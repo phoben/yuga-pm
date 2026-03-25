@@ -65,10 +65,22 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-  <!-- Konva.js for Canvas Diagrams -->
-  <script src="https://unpkg.com/konva@9/konva.min.js"></script>
-  <!-- dagre for automatic graph layout -->
-  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+  <!-- Mermaid for diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      themeVariables: {
+        primaryColor: '#3b82f6',
+        primaryTextColor: '#ffffff',
+        primaryBorderColor: '#2563eb',
+        lineColor: '#94a3b8',
+        secondaryColor: '#8b5cf6',
+        tertiaryColor: '#f1f5f9',
+      }
+    });
+  </script>
 
   <style>
     /* ============================================
@@ -610,99 +622,62 @@
     }
 
     /* ============================================
-       yg-diagram Canvas 图表样式
+       Mermaid 图表容器样式
        ============================================ */
     .diagram-container {
-      position: relative;  /* 为全览按钮提供定位上下文 */
       width: 100%;
-      min-height: 400px;
-      background: hsl(var(--background));
+      min-height: 300px;
+      background: hsl(var(--card));
       border: 1px solid hsl(var(--border));
       border-radius: var(--radius);
+      padding: 20px;
       margin: 16px 0;
-      overflow: hidden;
+      overflow-x: auto;
+    }
+
+    .diagram-container .mermaid {
+      display: flex;
+      justify-content: center;
     }
 
     .diagram-title {
       font-size: 16px;
       font-weight: 600;
       color: hsl(var(--foreground));
-      padding: 16px 16px 0;
+      margin-bottom: 16px;
       text-align: center;
     }
 
-    .diagram-canvas {
+    /* ============================================
+       Canvas 蓝图容器样式（系统架构图等）
+       ============================================ */
+    .canvas-blueprint {
       width: 100%;
-      height: 400px;
-    }
-
-    .diagram-popover {
-      background: hsl(var(--popover));
+      min-height: 400px;
+      background: hsl(var(--card));
       border: 1px solid hsl(var(--border));
       border-radius: var(--radius);
-      padding: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 1000;
-      max-width: 300px;
+      margin: 16px 0;
+      overflow: hidden;
+      position: relative;
     }
 
-    .diagram-popover .popover-title {
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: hsl(var(--popover-foreground));
+    .canvas-blueprint canvas {
+      width: 100%;
+      height: 100%;
     }
 
-    .diagram-popover .popover-desc {
-      font-size: 14px;
-      color: hsl(var(--muted-foreground));
-      margin-bottom: 8px;
-    }
-
-    .diagram-popover .popover-meta {
-      font-size: 12px;
-      color: hsl(var(--muted-foreground));
-    }
-
-    .diagram-popover .popover-meta span {
-      display: inline-block;
-      margin-right: 12px;
-      margin-bottom: 4px;
-    }
-
-    .diagram-popover .popover-meta b {
-      color: hsl(var(--foreground));
-    }
-
-    /* ============================================
-       图表全览按钮
-       ============================================ */
-    .diagram-fullscreen-btn {
+    .canvas-blueprint-title {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: hsl(var(--background));
-      border: 1px solid hsl(var(--border));
-      border-radius: 6px;
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.2s, background 0.2s;
+      top: 12px;
+      left: 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: hsl(var(--foreground));
       z-index: 10;
-    }
-
-    .diagram-fullscreen-btn:hover {
-      opacity: 1;
-      background: hsl(var(--muted));
-    }
-
-    .diagram-fullscreen-btn svg {
-      width: 16px;
-      height: 16px;
-      color: hsl(var(--muted-foreground));
+      background: hsl(var(--background) / 0.8);
+      padding: 4px 12px;
+      border-radius: 4px;
     }
 
     /* ============================================
@@ -915,480 +890,6 @@
         item.setAttribute('data-state', isOpen ? 'closed' : 'open');
       });
     });
-  </script>
-
-  <!-- YGDiagram Canvas 渲染引擎 -->
-  <script>
-/**
- * yg-diagram - Canvas 图表渲染引擎 (IIFE Bundle)
- * 基于 Konva.js 实现，可直接在浏览器中使用
- */
-(function(global) {
-  'use strict';
-
-  // 默认配置
-  var DEFAULT_CONFIG = {
-    padding: 40,
-    nodeSpacing: { x: 80, y: 60 },
-    fontSize: { title: 16, label: 14, edge: 12 },
-    borderRadius: 8,
-  };
-
-  var THEMES = {
-    light: {
-      background: '#ffffff',
-      text: '#1e293b',
-      node: {
-        primary: '#3b82f6',
-        secondary: '#8b5cf6',
-        tertiary: '#64748b',
-        success: '#10b981',
-        warning: '#f59e0b',
-        danger: '#ef4444',
-        info: '#06b6d4',
-        neutral: '#64748b',
-      },
-      edge: { default: '#94a3b8', highlight: '#3b82f6' },
-    },
-    dark: {
-      background: '#1e293b',
-      text: '#f1f5f9',
-      node: {
-        primary: '#60a5fa',
-        secondary: '#a78bfa',
-        tertiary: '#94a3b8',
-        success: '#34d399',
-        warning: '#fbbf24',
-        danger: '#f87171',
-        info: '#22d3ee',
-        neutral: '#94a3b8',
-      },
-      edge: { default: '#64748b', highlight: '#60a5fa' },
-    },
-  };
-
-  var DIAGRAM_TYPES = ['flowchart', 'architecture', 'sequence', 'statechart', 'er-diagram', 'gantt', 'mindmap', 'network'];
-
-  // 核心渲染器
-  function DiagramCore(container, config) {
-    this.container = container;
-    this.config = config;
-    this.stage = null;
-    this.mainLayer = null;
-    this.titleLayer = null;
-    this.nodes = new Map();
-    this.edges = [];
-    this.init();
-  }
-
-  DiagramCore.prototype.init = function() {
-    var rect = this.container.getBoundingClientRect();
-    var width = rect.width || 800;
-    var height = Math.max(rect.height || 400, 400);
-
-    this.stage = new Konva.Stage({ container: this.container, width: width, height: height });
-    this.titleLayer = new Konva.Layer();
-    this.stage.add(this.titleLayer);
-    this.mainLayer = new Konva.Layer();
-    this.stage.add(this.mainLayer);
-
-    this.renderBackground();
-    this.renderTitle();
-    this.renderDiagram();
-    this.setupThemeObserver();  // 新增：设置主题监听
-  };
-
-  DiagramCore.prototype.renderBackground = function() {
-    this.container.style.backgroundColor = this.config.theme.background;
-  };
-
-  DiagramCore.prototype.renderTitle = function() {
-    if (this.config.title) {
-      var title = new Konva.Text({
-        text: this.config.title,
-        fontSize: this.config.fontSize.title,
-        fontStyle: '600',
-        fill: this.config.theme.text,
-        x: this.stage.width() / 2,
-        y: 10,
-        align: 'center',
-      });
-      title.offsetX(title.width() / 2);
-      this.titleLayer.add(title);
-    }
-  };
-
-  DiagramCore.prototype.renderDiagram = function() {
-    var positions = this.calculateLayout();
-    this.renderEdges(positions.edges);
-    this.renderNodes(positions.nodes);
-    if (positions.layerLabels) this.renderLayerLabels(positions.layerLabels);
-    this.addFullscreenBtn();  // 添加全览按钮
-    this.applyInteractions();
-    this.fitToView();
-  };
-
-  DiagramCore.prototype.calculateLayout = function() {
-    var self = this;
-    var type = this.config.type;
-    var nodes = [];
-    var edges = [];
-    var layerLabels = [];
-    var startY = this.config.title ? 50 : 20;
-    var spacing = this.config.nodeSpacing;
-
-    if (type === 'architecture' && this.config.layers) {
-      // 架构图：处理 layers 结构
-      var layerY = startY;
-      var layerSep = 120;
-      var nodeSep = 30;
-      var nodeWidth = 140;
-      var nodeHeight = 60;
-
-      this.config.layers.forEach(function(layer) {
-        layerLabels.push({ label: layer.label, x: 20, y: layerY + nodeHeight / 2 });
-
-        var layerNodes = layer.nodes || [];
-        var totalWidth = layerNodes.length * nodeWidth + (layerNodes.length - 1) * nodeSep;
-        var startX = Math.max(20, (self.stage.width() - totalWidth) / 2);
-
-        layerNodes.forEach(function(node, nodeIndex) {
-          nodes.push({
-            ...node,
-            x: startX + nodeIndex * (nodeWidth + nodeSep),
-            y: layerY,
-            width: nodeWidth,
-            height: nodeHeight,
-            layerId: layer.id,
-          });
-        });
-
-        layerY += nodeHeight + layerSep;
-      });
-
-      var edgeList = this.config.edges || this.config.connections || [];
-      edgeList.forEach(function(edge) {
-        var fromNode = nodes.find(function(n) { return n.id === edge.from; });
-        var toNode = nodes.find(function(n) { return n.id === edge.to; });
-        if (fromNode && toNode) {
-          edges.push({
-            ...edge,
-            fromX: fromNode.x + fromNode.width / 2,
-            fromY: fromNode.y + fromNode.height,
-            toX: toNode.x + toNode.width / 2,
-            toY: toNode.y,
-          });
-        }
-      });
-    } else {
-      // 其他图表类型
-      var nodeList = this.config.nodes || [];
-      var edgeList = this.config.edges || this.config.connections || this.config.messages || [];
-
-      nodeList.forEach(function(node, index) {
-        nodes.push({
-          ...node,
-          x: (self.stage.width() - 120) / 2,
-          y: startY + index * (spacing.y + 60),
-          width: 120,
-          height: 40,
-        });
-      });
-
-      edgeList.forEach(function(edge) {
-        var fromNode = nodes.find(function(n) { return n.id === edge.from; });
-        var toNode = nodes.find(function(n) { return n.id === edge.to; });
-        if (fromNode && toNode) {
-          edges.push({
-            ...edge,
-            fromX: fromNode.x + fromNode.width / 2,
-            fromY: fromNode.y + fromNode.height,
-            toX: toNode.x + toNode.width / 2,
-            toY: toNode.y,
-          });
-        }
-      });
-    }
-
-    return { nodes: nodes, edges: edges, layerLabels: layerLabels };
-  };
-
-  DiagramCore.prototype.renderLayerLabels = function(layerLabels) {
-    var self = this;
-    layerLabels.forEach(function(label) {
-      var text = new Konva.Text({
-        text: label.label,
-        fontSize: 12,
-        fontStyle: '500',
-        fill: self.config.theme.text,
-        opacity: 0.7,
-        x: label.x,
-        y: label.y,
-      });
-      self.mainLayer.add(text);
-    });
-  };
-
-  DiagramCore.prototype.renderNodes = function(nodes) {
-    var self = this;
-    nodes.forEach(function(node) {
-      var group = new Konva.Group({ x: node.x, y: node.y });
-      group.setAttr('id', node.id);
-
-      var shape = self.createNodeShape(node);
-      group.add(shape);
-
-      var label = node.label || '';
-      var lines = label.split('\n');
-      var lineHeight = 16;
-      var textY = (node.height - lines.length * lineHeight) / 2;
-
-      lines.forEach(function(line, index) {
-        var text = new Konva.Text({
-          text: line,
-          fontSize: self.config.fontSize.label,
-          fill: '#ffffff',
-          width: node.width,
-          align: 'center',
-          y: textY + index * lineHeight,
-        });
-        group.add(text);
-      });
-
-      if (node.popover) group.setAttr('popover', node.popover);
-
-      self.mainLayer.add(group);
-      self.nodes.set(node.id, group);
-    });
-  };
-
-  DiagramCore.prototype.createNodeShape = function(node) {
-    var type = node.type || 'primary';
-    var fill = this.config.theme.node[type] || this.config.theme.node.primary;
-
-    return new Konva.Rect({
-      width: node.width,
-      height: node.height,
-      fill: fill,
-      cornerRadius: this.config.borderRadius,
-      shadowColor: 'rgba(0,0,0,0.1)',
-      shadowBlur: 4,
-      shadowOffset: { x: 0, y: 2 },
-    });
-  };
-
-  DiagramCore.prototype.renderEdges = function(edges) {
-    var self = this;
-    edges.forEach(function(edge) {
-      var line = new Konva.Arrow({
-        points: [edge.fromX, edge.fromY, edge.toX, edge.toY],
-        stroke: self.config.theme.edge.default,
-        strokeWidth: 2,
-        pointerLength: 10,
-        pointerWidth: 10,
-      });
-      self.mainLayer.add(line);
-      self.edges.push(line);
-
-      if (edge.label) {
-        var midX = (edge.fromX + edge.toX) / 2;
-        var midY = (edge.fromY + edge.toY) / 2;
-
-        var label = new Konva.Label({ x: midX, y: midY });
-        label.add(new Konva.Tag({
-          fill: self.config.theme.background,
-          stroke: self.config.theme.edge.default,
-          strokeWidth: 1,
-          cornerRadius: 4,
-        }));
-        label.add(new Konva.Text({
-          text: edge.label,
-          fontSize: self.config.fontSize.edge,
-          fill: self.config.theme.text,
-          padding: 4,
-        }));
-        self.mainLayer.add(label);
-      }
-    });
-  };
-
-  DiagramCore.prototype.applyInteractions = function() {
-    if (this.config.interactive && this.config.interactive.zoomable !== false) {
-      this.enableZoomPan();
-    }
-    if (this.config.interactive && this.config.interactive.hoverHighlight !== false) {
-      this.enableHover();
-    }
-  };
-
-  DiagramCore.prototype.enableZoomPan = function() {
-    var scale = 1;
-    var stage = this.stage;
-
-    stage.on('wheel', function(e) {
-      e.evt.preventDefault();
-      var oldScale = scale;
-      var pointer = stage.getPointerPosition();
-
-      scale = e.evt.deltaY > 0 ? oldScale * 0.9 : oldScale * 1.1;
-      scale = Math.max(0.1, Math.min(5, scale));
-
-      stage.scale({ x: scale, y: scale });
-      stage.position({
-        x: pointer.x - (pointer.x - stage.x()) * (scale / oldScale),
-        y: pointer.y - (pointer.y - stage.y()) * (scale / oldScale),
-      });
-      stage.batchDraw();
-    });
-
-    stage.draggable(true);
-  };
-
-  DiagramCore.prototype.enableHover = function() {
-    var self = this;
-    this.nodes.forEach(function(group) {
-      group.on('mouseenter', function() {
-        document.body.style.cursor = 'pointer';
-        group.scale({ x: 1.05, y: 1.05 });
-        self.mainLayer.batchDraw();
-      });
-      group.on('mouseleave', function() {
-        document.body.style.cursor = 'default';
-        group.scale({ x: 1, y: 1 });
-        self.mainLayer.batchDraw();
-      });
-    });
-  };
-
-  DiagramCore.prototype.addFullscreenBtn = function() {
-    var self = this;
-
-    // 创建按钮
-    var btn = document.createElement('button');
-    btn.className = 'diagram-fullscreen-btn';
-    btn.title = '显示全览';
-    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
-
-    // 点击事件：重置为全览视图
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      self.fitToView();
-    });
-
-    this.container.appendChild(btn);
-    this.fullscreenBtn = btn;
-  };
-
-  DiagramCore.prototype.setupThemeObserver = function() {
-    var self = this;
-
-    this.themeObserver = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.attributeName === 'data-theme' || mutation.attributeName === 'class') {
-          self.updateTheme();
-        }
-      });
-    });
-
-    this.themeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme', 'class']
-    });
-  };
-
-  DiagramCore.prototype.updateTheme = function() {
-    // 获取当前主题
-    var isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-                 document.documentElement.classList.contains('dark');
-    var currentTheme = isDark ? 'dark' : 'light';
-
-    // 更新配置
-    this.config.theme = THEMES[currentTheme];
-
-    // 重新渲染 Canvas 元素（全览按钮使用 CSS 变量，无需重新创建）
-    this.renderBackground();
-    this.titleLayer.destroyChildren();
-    this.mainLayer.destroyChildren();
-    this.renderTitle();
-
-    var positions = this.calculateLayout();
-    this.renderEdges(positions.edges);
-    this.renderNodes(positions.nodes);
-    if (positions.layerLabels) this.renderLayerLabels(positions.layerLabels);
-
-    this.fitToView();
-  };
-
-  DiagramCore.prototype.fitToView = function() {
-    var clientRect = this.container.getBoundingClientRect();
-    var stageRect = this.stage.getClientRect({ skipTransform: true });
-
-    var scaleX = clientRect.width / (stageRect.width + this.config.padding * 2);
-    var scaleY = clientRect.height / (stageRect.height + this.config.padding * 2);
-    var scale = Math.min(scaleX, scaleY, 1);
-
-    this.stage.scale({ x: scale, y: scale });
-    this.stage.position({ x: this.config.padding, y: this.config.padding });
-    this.stage.draw();
-  };
-
-  DiagramCore.prototype.destroy = function() {
-    if (this.themeObserver) {
-      this.themeObserver.disconnect();
-      this.themeObserver = null;
-    }
-    if (this.fullscreenBtn) {
-      this.fullscreenBtn.remove();
-      this.fullscreenBtn = null;
-    }
-    if (this.stage) {
-      this.stage.destroy();
-    }
-    this.nodes.clear();
-    this.edges = [];
-  };
-
-  // YGDiagram 主类
-  function YGDiagram() {
-    this.instances = new Map();
-  }
-
-  YGDiagram.prototype.render = function(container, config) {
-    var el = typeof container === 'string' ? document.querySelector(container) : container;
-    if (!el) {
-      console.error('YGDiagram: Container not found');
-      return null;
-    }
-
-    if (!config || !config.type) {
-      console.error('YGDiagram: Missing required field "type"');
-      return null;
-    }
-
-    var mergedConfig = {
-      ...DEFAULT_CONFIG,
-      ...config,
-      theme: THEMES[config.theme || 'light'],
-    };
-
-    var instance = new DiagramCore(el, mergedConfig);
-    var instanceId = 'diagram-' + Date.now();
-    this.instances.set(instanceId, instance);
-    return instance;
-  };
-
-  YGDiagram.prototype.destroy = function(instanceId) {
-    var instance = this.instances.get(instanceId);
-    if (instance) {
-      instance.destroy();
-      this.instances.delete(instanceId);
-    }
-  };
-
-  // 导出到全局
-  global.YGDiagram = new YGDiagram();
-
-})(typeof window !== 'undefined' ? window : this);
   </script>
 </body>
 </html>
