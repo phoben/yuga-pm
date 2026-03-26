@@ -69,6 +69,7 @@ description: "将Markdown文档转换为shadcn/ui风格的HTML可视化文档。
 │  - 填充 header-title, nav, header 区域                      │
 │  - 为每个 H2 章节生成占位符骨架                              │
 │  - 写入框架文件，标记任务 completed                          │
+│  - 打开浏览器预览，提示用户刷新查看进度                       │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -263,6 +264,41 @@ Read(file_path=doc_path, offset=meta.startLine, limit=meta.endLine - meta.startL
 
 ```
 Write(output_path, framework_html)
+```
+
+### 步骤6: 打开浏览器预览
+
+**写入框架文件后，立即打开浏览器让用户预览初始状态：**
+
+```bash
+# Windows 系统使用 start 命令
+start "" "{output_path}"
+
+# macOS 系统使用 open 命令
+open "{output_path}"
+
+# Linux 系统使用 xdg-open 命令
+xdg-open "{output_path}"
+```
+
+**根据操作系统选择命令：**
+| 系统 | 命令 | 说明 |
+|------|------|------|
+| Windows | `start "" "path"` | 空字符串作为窗口标题 |
+| macOS | `open "path"` | 使用默认浏览器 |
+| Linux | `xdg-open "path"` | 使用默认应用 |
+
+### 步骤7: 提示用户进度感知
+
+**向用户输出提示信息：**
+
+```
+📄 框架文件已生成，浏览器已打开预览
+
+💡 提示：已启动 SubAgent 逐个编写章节内容
+   请刷新浏览器查看最新内容
+
+📍 预览文件: {output_path}
 ```
 
 ---
