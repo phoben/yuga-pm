@@ -102,6 +102,9 @@
     });
   </script>
 
+  <!-- html2pdf.js for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
     /* ============================================
        shadcn/ui CSS Variables - Light Theme
@@ -383,6 +386,10 @@
 
     .arch-node[data-type="secondary"] {
       background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .arch-node[data-type="tertiary"] {
+      background: linear-gradient(135deg, #10b981, #059669);
     }
 
     .arch-node[data-type="database"] {
@@ -720,9 +727,223 @@
     .diagram-container::-webkit-scrollbar {
       display: none;                   /* Chrome/Safari/Opera */
     }
+
+    /* ============================================
+       PDF Export Styles
+       ============================================ */
+    /* 屏幕显示时隐藏PDF专用元素 */
+    @media screen {
+      .pdf-only {
+        display: none !important;
+      }
+    }
+
+    /* PDF导出模式 */
+    .pdf-export-mode .pdf-only {
+      display: block !important;
+    }
+
+    /* PDF导出时隐藏不需要的元素 */
+    .pdf-export-mode header,
+    .pdf-export-mode aside,
+    .pdf-export-mode .skeleton-container {
+      display: none !important;
+    }
+
+    /* PDF导出时的正文样式调整 */
+    .pdf-export-mode main {
+      margin-left: 0 !important;
+      max-width: 100% !important;
+      padding: 40px 60px !important;
+    }
+
+    /* 分页控制 */
+    .pdf-export-mode section {
+      page-break-inside: avoid;
+    }
+
+    /* 打印媒体查询（备用） */
+    @media print {
+      .pdf-only {
+        display: block !important;
+      }
+
+      header,
+      aside {
+        display: none !important;
+      }
+    }
+
+    /* ============================================
+       PDF Cover Page Styles
+       ============================================ */
+    .pdf-cover {
+      display: none;
+    }
+
+    .pdf-export-mode .pdf-cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      page-break-after: always;
+      background: hsl(var(--background));
+      text-align: center;
+      position: relative;
+    }
+
+    .pdf-cover-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pdf-cover-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .pdf-cover-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: hsl(var(--foreground));
+      margin-bottom: 12px;
+      max-width: 80%;
+    }
+
+    .pdf-cover-subtitle {
+      font-size: 18px;
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 48px;
+    }
+
+    .pdf-cover-meta {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+    }
+
+    .pdf-cover-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .pdf-cover-label {
+      font-size: 12px;
+      color: hsl(var(--muted-foreground));
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pdf-cover-value {
+      font-size: 16px;
+      font-weight: 500;
+      color: hsl(var(--foreground));
+    }
+
+    .pdf-cover-footer {
+      position: absolute;
+      bottom: 40px;
+      font-size: 12px;
+      color: hsl(var(--muted-foreground));
+    }
+
+    /* ============================================
+       PDF Table of Contents Styles
+       ============================================ */
+    .pdf-toc {
+      display: none;
+    }
+
+    .pdf-export-mode .pdf-toc {
+      display: block;
+      height: 100vh;
+      page-break-after: always;
+      padding: 60px 80px;
+      background: hsl(var(--background));
+    }
+
+    .pdf-toc-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: hsl(var(--foreground));
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid hsl(var(--border));
+    }
+
+    .pdf-toc-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pdf-toc-item {
+      display: flex;
+      align-items: baseline;
+    }
+
+    .pdf-toc-text {
+      font-size: 14px;
+      color: hsl(var(--foreground));
+    }
+
+    .pdf-toc-h2 .pdf-toc-text {
+      font-weight: 500;
+    }
+
+    .pdf-toc-h3 {
+      padding-left: 24px;
+    }
+
+    .pdf-toc-h3 .pdf-toc-text {
+      font-weight: 400;
+      color: hsl(var(--muted-foreground));
+    }
   </style>
 </head>
 <body class="bg-background text-foreground antialiased">
+  <!-- PDF Only: Cover Page & Table of Contents (hidden in browser, visible in PDF) -->
+  <div class="pdf-only">
+    <!-- Cover Page -->
+    <div class="pdf-cover">
+      <div class="pdf-cover-content">
+        <div class="pdf-cover-badge">文档</div>
+        <h1 class="pdf-cover-title" data-fill="pdf-cover-title">{{doc-title}}</h1>
+        <div class="pdf-cover-subtitle" data-fill="pdf-cover-project">{{project-name}}</div>
+        <div class="pdf-cover-meta">
+          <div class="pdf-cover-meta-item">
+            <span class="pdf-cover-label">版本</span>
+            <span class="pdf-cover-value" data-fill="pdf-cover-version">{{version}}</span>
+          </div>
+          <div class="pdf-cover-meta-item">
+            <span class="pdf-cover-label">日期</span>
+            <span class="pdf-cover-value" data-fill="pdf-cover-date">{{date}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="pdf-cover-footer">
+        云之初信息科技有限公司
+      </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <nav class="pdf-toc">
+      <h2 class="pdf-toc-title">目录</h2>
+      <div class="pdf-toc-content" data-fill="pdf-toc-content">
+        <!-- TOC items generated by Main Agent based on document structure -->
+      </div>
+    </nav>
+  </div>
+
   <!-- Fixed Top Header -->
   <header class="fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-sm border-b z-50">
     <div class="flex items-center justify-between h-full px-8">
@@ -748,6 +969,25 @@
           <!-- 收缩图标 (chevrons-down) -->
           <svg class="w-5 h-5 accordion-icon-collapse hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+          </svg>
+        </button>
+        <!-- Export PDF Button -->
+        <button
+          id="export-pdf-btn"
+          onclick="exportPDF()"
+          class="inline-flex items-center justify-center w-10 h-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+          aria-label="导出PDF"
+          title="导出为PDF文档"
+        >
+          <!-- 打印图标 (printer) -->
+          <svg class="w-5 h-5 export-icon-printer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <!-- 加载图标 (loader-2) -->
+          <svg class="w-5 h-5 export-icon-loader hidden animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-6.219-8.56"></path>
           </svg>
         </button>
         <!-- Theme Toggle Button -->
@@ -951,6 +1191,71 @@
         expandIcon.classList.remove('hidden');
         collapseIcon.classList.add('hidden');
       }
+    }
+
+    /* ============================================
+       PDF Export Functionality
+       ============================================ */
+    async function exportPDF() {
+      const btn = document.getElementById('export-pdf-btn');
+      const printerIcon = btn.querySelector('.export-icon-printer');
+      const loaderIcon = btn.querySelector('.export-icon-loader');
+
+      // 显示加载状态
+      printerIcon.classList.add('hidden');
+      loaderIcon.classList.remove('hidden');
+      btn.disabled = true;
+
+      try {
+        // 切换到PDF导出模式
+        document.body.classList.add('pdf-export-mode');
+
+        // 等待样式应用
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // PDF配置
+        const element = document.body;
+        const opt = {
+          margin: 0,
+          filename: getPDFFileName(),
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            letterRendering: true
+          },
+          jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+          },
+          pagebreak: {
+            mode: ['avoid-all', 'css', 'legacy'],
+            before: '.pdf-cover, .pdf-toc',
+            after: '.pdf-cover, .pdf-toc'
+          }
+        };
+
+        // 生成PDF
+        await html2pdf().set(opt).from(element).save();
+
+      } catch (error) {
+        console.error('PDF导出失败:', error);
+        alert('PDF导出失败，请重试');
+      } finally {
+        // 恢复页面状态
+        document.body.classList.remove('pdf-export-mode');
+        printerIcon.classList.remove('hidden');
+        loaderIcon.classList.add('hidden');
+        btn.disabled = false;
+      }
+    }
+
+    function getPDFFileName() {
+      // 从文档标题生成文件名
+      const title = document.querySelector('[data-fill="header-title"]')?.textContent || 'document';
+      const date = new Date().toISOString().split('T')[0];
+      return `${title}_${date}.pdf`;
     }
   </script>
 </body>

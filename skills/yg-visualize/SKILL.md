@@ -210,7 +210,7 @@ Read(file_path=doc_path, offset=meta.startLine, limit=meta.endLine - meta.startL
 ```markdown
 **文档版本：** v1.0
 **创建日期：** 2026-03-24
-**项目名称：** 泽丰数字化建设技术选型及架构建议方案
+**项目名称：** XX公司数字化建设技术选型及架构建议方案
 **状态：** 待确认
 ```
 
@@ -223,6 +223,11 @@ Read(file_path=doc_path, offset=meta.startLine, limit=meta.endLine - meta.startL
 | 侧边栏目录 | nav | H2 章节导航链接 |
 | 文档头部 | header | H1 + 元信息 |
 | 章节内容 | content | H2 章节占位符（带骨架屏，跳过"目录"章节） |
+| PDF封面标题 | pdf-cover-title | 文档标题（从H1提取） |
+| PDF封面项目 | pdf-cover-project | 项目名称（从元信息提取） |
+| PDF封面版本 | pdf-cover-version | 版本号（从元信息提取） |
+| PDF封面日期 | pdf-cover-date | 日期（从元信息提取） |
+| PDF目录内容 | pdf-toc-content | H2/H3 章节目录列表 |
 
 **⚠️ 跳过规则：** 标题为"目录"、"目录导航"、"Table of Contents"的章节不生成占位符和导航项。
 
@@ -541,6 +546,52 @@ TodoWrite({
 
 进度: [████████░░░░░░░░] 50% (2/4 章节)
 ```
+
+---
+
+## PDF导出功能
+
+模板内置PDF导出功能，用户可在浏览器中一键导出PDF文档。
+
+### 导出按钮位置
+
+顶栏右侧，主题切换按钮左侧，使用打印图标。
+
+### PDF结构
+
+| 页面 | 内容 |
+|------|------|
+| 第1页 | 封面页：标题、项目名、版本、日期 |
+| 第2页 | 目录页：H2/H3层级结构 |
+| 第3页+ | 正文内容 |
+
+### 封面页数据填充
+
+主Agent在框架生成阶段，从源文档元信息区域提取数据并填充：
+
+```html
+<h1 class="pdf-cover-title" data-fill="pdf-cover-title">文档标题</h1>
+<div class="pdf-cover-subtitle" data-fill="pdf-cover-project">项目名称</div>
+<span class="pdf-cover-value" data-fill="pdf-cover-version">v1.0</span>
+<span class="pdf-cover-value" data-fill="pdf-cover-date">2026-03-26</span>
+```
+
+### 目录页生成
+
+主Agent根据outline结构，在 `data-fill="pdf-toc-content"` 区域生成目录项：
+
+```html
+<!-- H2 章节 -->
+<div class="pdf-toc-item pdf-toc-h2">
+  <span class="pdf-toc-text">功能概述</span>
+</div>
+<!-- H3 子章节 -->
+<div class="pdf-toc-item pdf-toc-h3">
+  <span class="pdf-toc-text">前端架构</span>
+</div>
+```
+
+**跳过规则：** 标题为"目录"、"目录导航"、"Table of Contents"的章节不生成目录项。
 
 ---
 
