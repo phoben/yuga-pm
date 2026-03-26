@@ -71,7 +71,7 @@
     mermaid.initialize({
       startOnLoad: true,
       theme: 'default',
-      useMaxWidth: false,
+      useMaxWidth: true,
       themeVariables: {
         primaryColor: '#3b82f6',
         primaryTextColor: '#ffffff',
@@ -92,7 +92,9 @@
         gridLineStartPadding: 35,
         fontSize: 12,
         topAxis: false,
-        displayMode: 'compact'
+        displayMode: 'compact',
+        useMaxWidth: true,
+        useWidth: 1000
       },
       sequence: {
         mirrorActors: false,
@@ -1068,6 +1070,171 @@
   <script>
     // Initialize Lucide icons
     lucide.createIcons();
+
+    /* ============================================
+       Canvas Helper - Canvas 绘制工具库
+       ============================================ */
+    window.CanvasHelper = {
+      // 预定义颜色方案（与 shadcn/ui 一致）
+      colorSchemes: {
+        light: {
+          foreground: '#0f172a',
+          primary: '#3b82f6',
+          primaryDark: '#2563eb',
+          secondary: '#8b5cf6',
+          secondaryDark: '#7c3aed',
+          tertiary: '#10b981',
+          tertiaryDark: '#059669',
+          muted: '#64748b',
+          border: '#e2e8f0',
+          background: '#ffffff'
+        },
+        dark: {
+          foreground: '#f8fafc',
+          primary: '#60a5fa',
+          primaryDark: '#3b82f6',
+          secondary: '#a78bfa',
+          secondaryDark: '#8b5cf6',
+          tertiary: '#34d399',
+          tertiaryDark: '#10b981',
+          muted: '#94a3b8',
+          border: '#334155',
+          background: '#0f172a'
+        }
+      },
+
+      // 标准字体栈（支持中英文）
+      fontStack: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif',
+
+      // 获取当前主题的颜色方案
+      getColors() {
+        const theme = document.documentElement.getAttribute('data-theme') || 'light';
+        return this.colorSchemes[theme];
+      },
+
+      // 设置 Canvas（Retina 适配）
+      setupCanvas(canvas, width, height) {
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+
+        ctx.scale(dpr, dpr);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        return ctx;
+      },
+
+      // 绘制圆角矩形
+      drawRoundedRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x, y, width, height, radius);
+        } else {
+          ctx.moveTo(x + radius, y);
+          ctx.arcTo(x + width, y, x + width, y + height, radius);
+          ctx.arcTo(x + width, y + height, x, y + height, radius);
+          ctx.arcTo(x, y + height, x, y, radius);
+          ctx.arcTo(x, y, x + width, y, radius);
+        }
+        ctx.closePath();
+      },
+
+      // 节点类型颜色映射
+      nodeColors: {
+        primary: (c) => ({ fill: c.primary, stroke: c.primaryDark, text: '#ffffff' }),
+        secondary: (c) => ({ fill: c.secondary, stroke: c.secondaryDark, text: '#ffffff' }),
+        tertiary: (c) => ({ fill: c.tertiary, stroke: c.tertiaryDark, text: '#ffffff' })
+      },
+
+      // 绘制节点
+      drawNode(ctx, node) {
+        const colors = this.getColors();
+        const colorFn = this.nodeColors[node.type] || this.nodeColors.primary;
+        const color = colorFn(colors);
+
+        this.drawRoundedRect(ctx, node.x, node.y, node.width, node.height, 8);
+
+        ctx.fillStyle = color.fill;
+        ctx.fill();
+        ctx.strokeStyle = color.stroke;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = color.text;
+        ctx.font = `500 14px ${this.fontStack}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.label, node.x + node.width / 2, node.y + node.height / 2);
+      },
+
+      // 绘制连接线
+      drawConnection(ctx, from, to, label) {
+        const colors = this.getColors();
+        const startX = from.x + from.width / 2;
+        const startY = from.y + from.height;
+        const endX = to.x + to.width / 2;
+        const endY = to.y;
+
+        // 绘制线条
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = colors.muted;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 绘制箭头
+        const arrowSize = 8;
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - arrowSize, endY - arrowSize);
+        ctx.lineTo(endX + arrowSize, endY - arrowSize);
+        ctx.closePath();
+        ctx.fillStyle = colors.muted;
+        ctx.fill();
+
+        // 绘制标签
+        if (label) {
+          ctx.fillStyle = colors.muted;
+          ctx.font = `12px ${this.fontStack}`;
+          ctx.fillText(label, (startX + endX) / 2, (startY + endY) / 2 - 10);
+        }
+      },
+
+      // 计算内容边界
+      calculateBounds(nodes, connections) {
+        let maxX = 0, maxY = 0;
+        const padding = 60;
+
+        nodes.forEach(node => {
+          maxX = Math.max(maxX, node.x + node.width);
+          maxY = Math.max(maxY, node.y + node.height);
+        });
+
+        // 考虑连接线标签
+        if (connections) {
+          connections.forEach(conn => {
+            if (conn.label) {
+              const from = nodes.find(n => n.id === conn.from);
+              const to = nodes.find(n => n.id === conn.to);
+              if (from && to) {
+                maxX = Math.max(maxX, (from.x + to.x + to.width) / 2 + 30);
+              }
+            }
+          });
+        }
+
+        return {
+          width: Math.max(400, maxX + padding),
+          height: Math.max(200, maxY + padding)
+        };
+      }
+    };
 
     /* ============================================
        Theme Management

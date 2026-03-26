@@ -223,35 +223,36 @@ flowchart TD
 **注意事项：**
 - Mermaid 代码必须放在 `<pre class="mermaid">` 标签内
 - 不添加 `.diagram-title`（折叠面板标题已提供）
+- 对于章节为纯mermaid图表，需要在下方增加简要说明；
 
 ### Canvas 原生绘制要点
 
-**⚠️ 关键要求：画布尺寸必须根据内容动态计算，避免内容被裁剪**
+**⚠️ 使用 CanvasHelper 工具库，禁止重复造轮子**
 
-**核心步骤：**
-1. 定义节点数据（先声明所有元素）
-2. 计算内容边界（遍历所有节点，获取最大 x+width 和 y+height）
-3. Retina 适配（使用 `devicePixelRatio` 缩放画布）
-4. 颜色格式：使用标准 hex 格式（如 `#3b82f6`），禁止使用 CSS 变量原始值
+**可用 API：**
+| 方法 | 用途 |
+|------|------|
+| `CanvasHelper.getColors()` | 获取当前主题颜色方案 |
+| `CanvasHelper.setupCanvas(canvas, w, h)` | 初始化 Canvas（Retina 适配） |
+| `CanvasHelper.drawNode(ctx, node)` | 绘制节点 |
+| `CanvasHelper.drawConnection(ctx, from, to, label)` | 绘制连接线 |
+| `CanvasHelper.calculateBounds(nodes, connections)` | 计算内容边界 |
 
-**完整 Canvas 模板：** 见 `${CLAUDE_SKILL_DIR}/references/diagram-conversion.md` 第 8 节
-
-### Canvas 节点类型规范
-
-**⚠️ CRITICAL: 必须使用以下标准类型，禁止自定义类型名称**
-
-| data-type | 颜色 | 适用场景 |
-|-----------|------|----------|
-| `primary` | 蓝色渐变 | 核心组件、主要服务、入口节点 |
-| `secondary` | 紫色渐变 | 外部系统、第三方服务（如 ERP、CRM） |
-| `tertiary` | 绿色渐变 | 自研系统、内部平台、定制模块 |
+**节点类型：**
+| type | 颜色 | 适用场景 |
+|------|------|----------|
+| `primary` | 蓝色 | 核心组件、入口节点 |
+| `secondary` | 紫色 | 外部系统、第三方服务 |
+| `tertiary` | 绿色 | 自研系统、内部平台 |
 
 **选择原则：**
 - 外部采购的商业系统 → `secondary`（紫色）
 - 公司自研的内部系统 → `tertiary`（绿色）
 - 通用基础设施 → `primary`（蓝色）
 
-**禁止：** 使用 `database`、`cache`、`external` 等未在 Canvas typeColors 中定义的类型
+**禁止：** 使用 `database`、`cache`、`external` 等未定义的类型
+
+**完整模板：** 见 `${CLAUDE_SKILL_DIR}/references/diagram-conversion.md` 第 8 节
 
 ---
 

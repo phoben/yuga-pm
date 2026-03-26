@@ -1,6 +1,6 @@
 ---
 name: yg-visualize
-description: "将Markdown文档转换为shadcn/ui风格的HTML可视化文档。"
+description: "将Markdown文档转换为shadcn/ui风格的HTML可视化文档。或优化修改已生成的HTML可视化文档的局部内容（如图表、布局、文字等）。"
 ---
 
 # shadcn/ui 可视化文档
