@@ -71,6 +71,16 @@ description: "将Markdown文档转换为shadcn/ui风格的HTML可视化文档。
 | offset/limit | 低（指定行数） | ✅ 必须 |
 | Grep + offset/limit | 最低（精准定位） | ✅ 推荐 |
 
+**模板文件读取优化：**
+
+| 文件 | 行数 | 读取策略 |
+|------|------|---------|
+| framework.html | ~290 行 | ✅ 单次全量读取（精简后可行） |
+| framework.css | ~850 行 | ❌ 无需读取（已复制到输出目录） |
+| framework.js | ~430 行 | ❌ 无需读取（已复制到输出目录） |
+
+**说明：** 模板拆分后，HTML 模板精简至 ~290 行，主 Agent 可单次读取，无需分段或 Grep 预定位。CSS/JS 资源文件直接复制到输出目录，无需读取内容。
+
 ---
 
 ## 执行流程
@@ -88,6 +98,8 @@ description: "将Markdown文档转换为shadcn/ui风格的HTML可视化文档。
 ┌─────────────────────────────────────────────────────────────┐
 │ 阶段2: 框架生成                                              │
 │  - TodoWrite 标记任务2 in_progress                          │
+│  - 复制 CSS/JS 资源文件到输出目录                            │
+│  - 读取 HTML 模板（~290行，单次读取）                        │
 │  - 主 Agent 读取 H1 + 元信息区域                            │
 │  - 填充 header-title, nav, header 区域                      │
 │  - 为每个 H2 章节生成占位符骨架                              │
@@ -214,16 +226,40 @@ ID 按文档顺序递增，确保唯一且有序。
 ### 步骤1: 确定输出路径
 
 ```
-output_path = ".yg-pm/projects/{project_name}/visualizations/{doc_name}.html"
+output_dir = ".yg-pm/projects/{project_name}/visualizations/"
+output_html = "{output_dir}/{doc_name}.html"
 ```
 
-### 步骤2: 读取框架模板
+**注意：** 确保 `output_dir` 目录存在，资源文件（CSS/JS）将复制到此目录。
+
+### 步骤2: 复制资源文件
+
+**模板已拆分为独立文件，需将资源文件复制到输出目录：**
+
+```bash
+# 复制 CSS 样式文件
+cp "${CLAUDE_SKILL_DIR}/templates/framework.css" "{output_dir}"
+
+# 复制 JS 脚本文件
+cp "${CLAUDE_SKILL_DIR}/templates/framework.js" "{output_dir}"
+```
+
+**文件说明：**
+| 文件 | 大小 | 用途 |
+|------|------|------|
+| framework.css | ~850 行 | shadcn/ui 风格样式 |
+| framework.js | ~430 行 | 交互逻辑、PDF导出 |
+| framework.html | ~290 行 | HTML 结构模板 |
+
+### 步骤3: 读取框架模板（单次读取）
 
 ```
 Read("${CLAUDE_SKILL_DIR}/templates/framework.html")
 ```
 
-### 步骤3: 读取源文档头部
+**模板已精简至 ~290 行，可一次性读取，无需分段或 Grep 预定位。**
+
+### 步骤4: 读取源文档头部
 
 主 Agent 读取 H1 和元信息区域：
 ```
@@ -238,7 +274,7 @@ Read(file_path=doc_path, offset=meta.startLine, limit=meta.endLine - meta.startL
 **状态：** 待确认
 ```
 
-### 步骤4: 生成框架文件
+### 步骤5: 生成框架文件
 
 **填充区域对照表：**
 | 区域 | data-fill | 内容 |
@@ -283,25 +319,25 @@ Read(file_path=doc_path, offset=meta.startLine, limit=meta.endLine - meta.startL
 </section>
 ```
 
-### 步骤5: 写入框架文件
+### 步骤6: 写入框架文件
 
 ```
-Write(output_path, framework_html)
+Write(output_html, framework_html)
 ```
 
-### 步骤6: 打开浏览器预览
+### 步骤7: 打开浏览器预览
 
 **写入框架文件后，立即打开浏览器让用户预览初始状态：**
 
 ```bash
 # Windows 系统使用 start 命令
-start "" "{output_path}"
+start "" "{output_html}"
 
 # macOS 系统使用 open 命令
-open "{output_path}"
+open "{output_html}"
 
 # Linux 系统使用 xdg-open 命令
-xdg-open "{output_path}"
+xdg-open "{output_html}"
 ```
 
 **根据操作系统选择命令：**
@@ -311,7 +347,7 @@ xdg-open "{output_path}"
 | macOS | `open "path"` | 使用默认浏览器 |
 | Linux | `xdg-open "path"` | 使用默认应用 |
 
-### 步骤7: 提示用户进度感知
+### 步骤8: 提示用户进度感知
 
 **向用户输出提示信息：**
 
@@ -321,7 +357,7 @@ xdg-open "{output_path}"
 💡 提示：已启动 SubAgent 逐个编写章节内容
    请刷新浏览器查看最新内容
 
-📍 预览文件: {output_path}
+📍 预览文件: {output_html}
 ```
 
 ---
