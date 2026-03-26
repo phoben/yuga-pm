@@ -762,6 +762,17 @@
     /* 分页控制 */
     .pdf-export-mode section {
       page-break-inside: avoid;
+      page-break-before: always;
+    }
+
+    /* 第一个章节不强制分页（紧跟目录页） */
+    .pdf-export-mode article > section:first-of-type {
+      page-break-before: avoid;
+    }
+
+    /* H2标题与内容保持在同一页 */
+    .pdf-export-mode section h2 {
+      page-break-after: avoid;
     }
 
     /* 打印媒体查询（备用） */
@@ -910,6 +921,49 @@
       font-weight: 400;
       color: hsl(var(--muted-foreground));
     }
+
+    /* ============================================
+       响应式布局 - 移动端适配
+       ============================================ */
+
+    /* 遮罩层 */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+      z-index: 40;
+    }
+
+    .sidebar-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* 侧边栏响应式 */
+    @media (max-width: 768px) {
+      :root {
+        --sidebar-width: 0px;
+      }
+
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 50;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0 !important;
+        padding: 1.5rem 1rem;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body class="bg-background text-foreground antialiased">
@@ -948,7 +1002,18 @@
 
   <!-- Fixed Top Header -->
   <header class="fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-sm border-b z-50">
-    <div class="flex items-center justify-between h-full px-8">
+    <div class="flex items-center justify-between h-full px-4 md:px-8">
+      <!-- 汉堡菜单按钮（仅移动端显示） -->
+      <button
+        id="sidebar-toggle"
+        class="md:hidden inline-flex items-center justify-center w-10 h-10 -ml-2 mr-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+        aria-label="打开导航菜单"
+        title="打开导航菜单"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
       <div class="flex items-center gap-4">
         <span class="text-sm font-semibold" data-fill="header-title">{{doc-title}}</span>
         <div class="flex gap-2" data-fill="header-tags">
@@ -964,13 +1029,17 @@
           aria-label="Toggle all accordions"
           title="展开/收缩所有折叠面板"
         >
-          <!-- 展开图标 (list-collapse) -->
+          <!-- 展开状态图标 (eye): 点击后折叠 -->
           <svg class="w-5 h-5 accordion-icon-expand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+            <circle cx="12" cy="12" r="3"/>
           </svg>
-          <!-- 收缩图标 (chevrons-down) -->
+          <!-- 折叠状态图标 (eye-off): 点击后展开 -->
           <svg class="w-5 h-5 accordion-icon-collapse hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 13l5 5 5-5M7 6l5 5 5-5"/>
+            <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
+            <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
+            <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
+            <path d="m2 2 20 20"/>
           </svg>
         </button>
         <!-- Export PDF Button -->
@@ -1010,8 +1079,11 @@
   </header>
 
   <div class="flex min-h-screen pt-16 justify-center">
+    <!-- 遮罩层（仅移动端显示） -->
+    <div id="sidebar-overlay" class="sidebar-overlay md:hidden"></div>
+
     <!-- Sidebar Navigation -->
-    <aside class="w-[280px] fixed left-0 top-16 bottom-0 bg-muted/30 border-r overflow-y-auto p-6">
+    <aside id="sidebar" class="sidebar w-[280px] fixed left-0 top-16 bottom-0 bg-muted border-r overflow-y-auto p-6">
       <nav class="space-y-1" data-fill="nav">
         <!-- Navigation items populated by Main Agent -->
         <!-- FORMAT: 禁用状态（内容未填充）
@@ -1024,7 +1096,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 ml-[280px] p-12 max-w-5xl">
+    <main class="main-content flex-1 ml-[280px] p-4 max-w-5xl">
       <!-- Document Header: H1 + Meta Info (filled by Main Agent) -->
       <header class="mb-10 pb-6 border-b" data-fill="header">
         <!-- MAIN AGENT: Fill with H1 title + document meta info (version, date, status, etc.) -->
@@ -1350,7 +1422,7 @@
         item.setAttribute('data-state', allAccordionsExpanded ? 'open' : 'closed');
       });
 
-      // 切换图标显示
+      // 切换图标显示：展开状态显示eye-off，折叠状态显示eye
       if (allAccordionsExpanded) {
         expandIcon.classList.add('hidden');
         collapseIcon.classList.remove('hidden');
@@ -1373,6 +1445,17 @@
       loaderIcon.classList.remove('hidden');
       btn.disabled = true;
 
+      // 页脚内容（与pdf-cover-footer相同）
+      const footerText = document.querySelector('.pdf-cover-footer')?.textContent?.trim() || '云之初信息科技有限公司';
+
+      // 保存accordion原始状态
+      const accordionItems = document.querySelectorAll('.accordion-item');
+      const originalStates = [];
+      accordionItems.forEach((item, i) => {
+        originalStates[i] = item.getAttribute('data-state');
+        item.setAttribute('data-state', 'open');
+      });
+
       try {
         // 切换到PDF导出模式
         document.body.classList.add('pdf-export-mode');
@@ -1383,7 +1466,7 @@
         // PDF配置
         const element = document.body;
         const opt = {
-          margin: 0,
+          margin: [15, 15, 20, 15], // 上右下左，留出页脚空间
           filename: getPDFFileName(),
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: {
@@ -1398,18 +1481,42 @@
           },
           pagebreak: {
             mode: ['avoid-all', 'css', 'legacy'],
-            before: '.pdf-cover, .pdf-toc',
             after: '.pdf-cover, .pdf-toc'
           }
         };
 
-        // 生成PDF
-        await html2pdf().set(opt).from(element).save();
+        // 生成PDF并添加页脚
+        const pdf = await html2pdf().set(opt).from(element).toPdf().get('pdf');
+
+        // 添加页脚
+        const pageCount = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          // 跳过封面页（第1页）和目录页（第2页）
+          if (i > 2) {
+            pdf.setPage(i);
+            pdf.setFontSize(9);
+            pdf.setTextColor(100, 116, 139); // muted-foreground颜色
+
+            // 页脚左侧：公司名称
+            pdf.text(footerText, 15, pdf.internal.pageSize.getHeight() - 10);
+
+            // 页脚右侧：页码
+            const pageNum = i - 2; // 从正文开始计数
+            pdf.text(String(pageNum), pdf.internal.pageSize.getWidth() - 15, pdf.internal.pageSize.getHeight() - 10, { align: 'right' });
+          }
+        }
+
+        // 保存PDF
+        pdf.save(getPDFFileName());
 
       } catch (error) {
         console.error('PDF导出失败:', error);
         alert('PDF导出失败，请重试');
       } finally {
+        // 恢复accordion原始状态
+        accordionItems.forEach((item, i) => {
+          item.setAttribute('data-state', originalStates[i]);
+        });
         // 恢复页面状态
         document.body.classList.remove('pdf-export-mode');
         printerIcon.classList.remove('hidden');
@@ -1424,6 +1531,38 @@
       const date = new Date().toISOString().split('T')[0];
       return `${title}_${date}.pdf`;
     }
+
+    /* ============================================
+       Mobile Sidebar Toggle
+       ============================================ */
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (sidebar && overlay) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+      }
+    }
+
+    // 绑定汉堡按钮点击事件
+    document.getElementById('sidebar-toggle')?.addEventListener('click', toggleSidebar);
+
+    // 点击遮罩层关闭侧边栏
+    document.getElementById('sidebar-overlay')?.addEventListener('click', toggleSidebar);
+
+    // 点击导航项后自动关闭侧边栏（移动端）
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          const sidebar = document.getElementById('sidebar');
+          const overlay = document.getElementById('sidebar-overlay');
+          if (sidebar?.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            overlay?.classList.remove('open');
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>
