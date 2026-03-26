@@ -319,9 +319,6 @@ async function exportPDF() {
   loaderIcon.classList.remove('hidden');
   btn.disabled = true;
 
-  // 页脚内容（与pdf-cover-footer相同）
-  const footerText = document.querySelector('.pdf-cover-footer')?.textContent?.trim() || '云之初信息科技有限公司';
-
   // 保存accordion原始状态
   const accordionItems = document.querySelectorAll('.accordion-item');
   const originalStates = [];
@@ -359,24 +356,27 @@ async function exportPDF() {
       }
     };
 
-    // 生成PDF并添加页脚
+    // 生成PDF
     const pdf = await html2pdf().set(opt).from(element).toPdf().get('pdf');
 
-    // 添加页脚
+    // 添加页脚（使用内置字体，中文显示为图片方式已在html2canvas中处理）
     const pageCount = pdf.internal.getNumberOfPages();
+
+    // 嵌入基础字体后设置页脚
     for (let i = 1; i <= pageCount; i++) {
-      // 跳过封面页（第1页）和目录页（第2页）
+      pdf.setPage(i);
+
+      // 跳过封面页和目录页，不添加页码
       if (i > 2) {
-        pdf.setPage(i);
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // 使用简单的页码标识（数字）
         pdf.setFontSize(9);
         pdf.setTextColor(100, 116, 139); // muted-foreground颜色
 
-        // 页脚左侧：公司名称
-        pdf.text(footerText, 15, pdf.internal.pageSize.getHeight() - 10);
-
-        // 页脚右侧：页码
-        const pageNum = i - 2; // 从正文开始计数
-        pdf.text(String(pageNum), pdf.internal.pageSize.getWidth() - 15, pdf.internal.pageSize.getHeight() - 10, { align: 'right' });
+        // 只显示页码，公司名在封面页已有
+        pdf.text(String(i - 2), pageWidth - 15, pageHeight - 10, { align: 'right' });
       }
     }
 
