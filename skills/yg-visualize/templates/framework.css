@@ -1,0 +1,856 @@
+/* ============================================
+   shadcn/ui CSS Variables - Light Theme
+   ============================================ */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+  --radius: 0.5rem;
+
+  /* Sidebar specific */
+  --sidebar-width: 280px;
+  --header-height: 64px;
+}
+
+/* ============================================
+   shadcn/ui CSS Variables - Dark Theme
+   ============================================ */
+[data-theme="dark"],
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 224.3 76.3% 48%;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection */
+::selection {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* ============================================
+   Flowchart Component Styles
+   ============================================ */
+.flowchart-container {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 24px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+.flow-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.flowchart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.flow-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.flow-node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  min-width: 120px;
+  max-width: 200px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.flow-node:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.flow-node[data-type="start"],
+.flow-node[data-type="end"] {
+  border-radius: 50px;
+  color: white;
+}
+
+.flow-node[data-type="start"] {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.flow-node[data-type="end"] {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.flow-node[data-type="process"] {
+  background: hsl(var(--background));
+  border: 2px solid hsl(var(--primary));
+  border-radius: var(--radius);
+  color: hsl(var(--foreground));
+}
+
+.flow-node[data-type="decision"] {
+  background: hsl(var(--background));
+  border: 2px solid #f59e0b;
+  border-radius: 0;
+  color: hsl(var(--foreground));
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  padding: 24px;
+  min-width: 100px;
+  max-width: 160px;
+}
+
+.flow-arrow {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+  color: hsl(var(--muted-foreground));
+}
+
+.flow-arrow svg {
+  width: 24px;
+  height: 24px;
+}
+
+.flow-parallel {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+}
+
+.flow-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.flow-branch-label {
+  position: absolute;
+  top: -20px;
+  font-size: 11px;
+  padding: 2px 6px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+/* ============================================
+   Architecture Diagram Component Styles
+   ============================================ */
+.architecture-diagram {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 24px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+.arch-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.arch-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.arch-layer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.layer-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding-left: 4px;
+}
+
+.layer-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.arch-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  min-width: 140px;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.arch-node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.arch-node svg {
+  width: 18px;
+  height: 18px;
+}
+
+.arch-node[data-type="primary"] {
+  background: linear-gradient(135deg, hsl(var(--primary)), #2563eb);
+}
+
+.arch-node[data-type="secondary"] {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.arch-node[data-type="tertiary"] {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.arch-node[data-type="database"] {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.arch-node[data-type="cache"] {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.arch-node[data-type="external"] {
+  background: linear-gradient(135deg, #64748b, #475569);
+}
+
+.arch-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  position: relative;
+}
+
+.arch-connector-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  background: hsl(var(--card));
+  padding: 0 8px;
+}
+
+.arch-connector-line svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================
+   Navigation Item States
+   ============================================ */
+.nav-item {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+/* 禁用状态（内容未填充） */
+.nav-item[data-pending="true"] {
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* 正常状态（内容已填充） */
+.nav-item[data-pending="false"] {
+  color: hsl(var(--foreground));
+}
+
+.nav-item[data-pending="false"]:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.nav-item[data-pending="false"].active {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* ============================================
+   Skeleton Loading Styles
+   ============================================ */
+.skeleton-container {
+  padding: 24px 0;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+
+.skeleton-text {
+  height: 16px;
+  margin-bottom: 12px;
+}
+
+.skeleton-text:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton-text.short {
+  width: 60%;
+}
+
+.skeleton-text.medium {
+  width: 80%;
+}
+
+.skeleton-text.full {
+  width: 100%;
+}
+
+.skeleton-card {
+  height: 120px;
+  margin-bottom: 16px;
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 40%;
+  margin-bottom: 20px;
+}
+
+.skeleton-list-item {
+  height: 48px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-list-item .skeleton {
+  flex: 1;
+}
+
+.skeleton-list-item .skeleton:first-child {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================
+   Accordion Component Styles
+   ============================================ */
+.accordion-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.accordion-item {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: hsl(var(--card));
+}
+
+.accordion-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: hsl(var(--foreground));
+}
+
+.accordion-trigger:hover {
+  background: hsl(var(--muted));
+}
+
+.accordion-trigger svg {
+  width: 18px;
+  height: 18px;
+  color: hsl(var(--muted-foreground));
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.accordion-item[data-state="open"] .accordion-trigger svg {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+
+.accordion-item[data-state="open"] .accordion-content {
+
+  max-height: 2000px;
+  transition: max-height 0.5s ease-in;
+}
+
+.accordion-content-inner {
+  padding: 10px 20px 16px 20px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: hsl(var(--foreground));
+}
+
+.accordion-content-inner p {
+  margin: 0 0 12px 0;
+}
+
+.accordion-content-inner p:last-child {
+  margin-bottom: 0;
+}
+
+.accordion-content-inner ul,
+.accordion-content-inner ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.accordion-content-inner li {
+  margin: 4px 0;
+}
+
+/* H3 标题在 accordion 中的样式 */
+.accordion-trigger h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* 带图标的 accordion trigger */
+.accordion-trigger-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.accordion-trigger-icon svg:first-child {
+  width: 18px;
+  height: 18px;
+  color: hsl(var(--primary));
+}
+
+/* ============================================
+   Mermaid 图表容器样式
+   ============================================ */
+.diagram-container {
+  width: 100%;
+  min-height: auto;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+
+.diagram-container .mermaid {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* 让 Mermaid SVG 撑满容器 */
+.diagram-container .mermaid svg {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 600px;
+  min-width: fit-content;
+}
+
+.diagram-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* Canvas 蓝图包装器 */
+.canvas-blueprint-wrapper {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin: 16px 0;
+}
+
+/* ============================================
+   Canvas 蓝图容器样式（系统架构图等）
+   ============================================ */
+.canvas-blueprint {
+  width: 100%;
+  background: hsl(var(--card));
+  position: relative;
+  padding: 20px;
+}
+
+.canvas-blueprint canvas {
+  display: block;
+}
+
+.canvas-blueprint-title {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  z-index: 10;
+  background: hsl(var(--background) / 0.8);
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+/* ============================================
+   隐藏图表容器滚动条
+   ============================================ */
+.flowchart-container,
+.architecture-diagram,
+.diagram-container {
+  scrollbar-width: none;           /* Firefox */
+  -ms-overflow-style: none;        /* IE/Edge */
+}
+
+.flowchart-container::-webkit-scrollbar,
+.architecture-diagram::-webkit-scrollbar,
+.diagram-container::-webkit-scrollbar {
+  display: none;                   /* Chrome/Safari/Opera */
+}
+
+/* ============================================
+   PDF Export Styles
+   ============================================ */
+/* 屏幕显示时隐藏PDF专用元素 */
+@media screen {
+  .pdf-only {
+    display: none !important;
+  }
+}
+
+/* PDF导出模式 */
+.pdf-export-mode .pdf-only {
+  display: block !important;
+}
+
+/* PDF导出时隐藏不需要的元素 */
+.pdf-export-mode header,
+.pdf-export-mode aside,
+.pdf-export-mode .skeleton-container {
+  display: none !important;
+}
+
+/* PDF导出时的正文样式调整 */
+.pdf-export-mode main {
+  margin-left: 0 !important;
+  max-width: 100% !important;
+  padding: 40px 60px !important;
+}
+
+/* 分页控制 */
+.pdf-export-mode section {
+  page-break-inside: avoid;
+  page-break-before: always;
+}
+
+/* 第一个章节不强制分页（紧跟目录页） */
+.pdf-export-mode article > section:first-of-type {
+  page-break-before: avoid;
+}
+
+/* H2标题与内容保持在同一页 */
+.pdf-export-mode section h2 {
+  page-break-after: avoid;
+}
+
+/* 打印媒体查询（备用） */
+@media print {
+  .pdf-only {
+    display: block !important;
+  }
+
+  header,
+  aside {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   PDF Cover Page Styles
+   ============================================ */
+.pdf-cover {
+  display: none;
+}
+
+.pdf-export-mode .pdf-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  page-break-after: always;
+  background: hsl(var(--background));
+  text-align: center;
+  position: relative;
+}
+
+.pdf-cover-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pdf-cover-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.pdf-cover-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-bottom: 12px;
+  max-width: 80%;
+}
+
+.pdf-cover-subtitle {
+  font-size: 18px;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 48px;
+}
+
+.pdf-cover-meta {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+}
+
+.pdf-cover-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pdf-cover-label {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pdf-cover-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.pdf-cover-footer {
+  position: absolute;
+  bottom: 40px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ============================================
+   PDF Table of Contents Styles
+   ============================================ */
+.pdf-toc {
+  display: none;
+}
+
+.pdf-export-mode .pdf-toc {
+  display: block;
+  height: 100vh;
+  page-break-after: always;
+  padding: 60px 80px;
+  background: hsl(var(--background));
+}
+
+.pdf-toc-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid hsl(var(--border));
+}
+
+.pdf-toc-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pdf-toc-item {
+  display: flex;
+  align-items: baseline;
+}
+
+.pdf-toc-text {
+  font-size: 14px;
+  color: hsl(var(--foreground));
+}
+
+.pdf-toc-h2 .pdf-toc-text {
+  font-weight: 500;
+}
+
+.pdf-toc-h3 {
+  padding-left: 24px;
+}
+
+.pdf-toc-h3 .pdf-toc-text {
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ============================================
+   响应式布局 - 移动端适配
+   ============================================ */
+
+/* 遮罩层 */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 40;
+}
+
+.sidebar-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 侧边栏响应式 */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 50;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 1.5rem 1rem;
+    max-width: 100%;
+  }
+}
