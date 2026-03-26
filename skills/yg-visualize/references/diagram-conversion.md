@@ -200,7 +200,7 @@ mindmap
 **⚠️ 关键要求：画布尺寸必须根据内容动态计算，避免内容被裁剪**
 
 ```html
-<div class="canvas-blueprint-wrapper" style="max-height: 600px; overflow: auto; border: 1px solid var(--border); border-radius: 8px;">
+<div class="canvas-blueprint-wrapper">
   <div class="canvas-blueprint">
     <span class="canvas-blueprint-title">系统架构图</span>
     <canvas id="blueprint-1"></canvas>
@@ -212,14 +212,26 @@ mindmap
   const canvas = document.getElementById('blueprint-1');
   const ctx = canvas.getContext('2d');
 
-  // 1. 定义节点数据（先声明所有元素）
+  // ===== 颜色配置（从 CSS 变量读取） =====
+  const styles = getComputedStyle(document.documentElement);
+  const colors = {
+    foreground: styles.getPropertyValue('--foreground').trim() || '#0f172a',
+    primary: styles.getPropertyValue('--primary').trim() || '#3b82f6',
+    border: styles.getPropertyValue('--border').trim() || '#e2e8f0',
+    muted: styles.getPropertyValue('--muted-foreground').trim() || '#64748b'
+  };
+
+  // ===== 定义节点数据 =====
   const nodes = [
-    { id: 'node1', x: 100, y: 80, width: 140, height: 60, label: '前端应用' },
-    { id: 'node2', x: 100, y: 200, width: 140, height: 60, label: 'API 网关' },
-    // 更多节点...
+    { id: 'node1', x: 100, y: 80, width: 140, height: 60, label: '前端应用', type: 'primary' },
+    { id: 'node2', x: 100, y: 180, width: 140, height: 60, label: 'API 网关', type: 'secondary' },
   ];
 
-  // 2. 计算内容边界（CRITICAL）
+  const connections = [
+    { from: 'node1', to: 'node2', label: 'HTTP' },
+  ];
+
+  // ===== 计算内容边界 =====
   function calculateContentBounds() {
     let maxX = 0, maxY = 0;
     const padding = 40;
@@ -228,29 +240,110 @@ mindmap
       maxY = Math.max(maxY, node.y + node.height);
     });
     return {
-      width: Math.max(canvas.parentElement.offsetWidth, maxX + padding),
-      height: Math.max(300, maxY + padding)
+      width: Math.max(400, maxX + padding),
+      height: Math.max(200, maxY + padding)
     };
   }
 
-  // 3. 设置画布尺寸
-  function resize() {
+  // ===== Retina 屏幕适配 =====
+  function setupCanvas() {
     const bounds = calculateContentBounds();
-    canvas.width = bounds.width;
-    canvas.height = bounds.height;
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = bounds.width * dpr;
+    canvas.height = bounds.height * dpr;
+    canvas.style.width = bounds.width + 'px';
+    canvas.style.height = bounds.height + 'px';
+
+    ctx.scale(dpr, dpr);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
     draw();
   }
 
-  // 4. 绘制逻辑
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    nodes.forEach(node => {
-      // 绘制节点...
-    });
+  // ===== 绘制圆角矩形（含兼容性回退） =====
+  function drawRoundedRect(x, y, width, height, radius) {
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, width, height, radius);
+      return;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + width, y, x + width, y + height, radius);
+    ctx.arcTo(x + width, y + height, x, y + height, radius);
+    ctx.arcTo(x, y + height, x, y, radius);
+    ctx.arcTo(x, y, x + width, y, radius);
+    ctx.closePath();
   }
 
-  resize();
-  window.addEventListener('resize', resize);
+  // ===== 绘制节点 =====
+  function drawNode(node) {
+    const typeColors = {
+      primary: { fill: colors.primary, text: '#ffffff' },
+      secondary: { fill: '#8b5cf6', text: '#ffffff' },
+      tertiary: { fill: '#10b981', text: '#ffffff' }
+    };
+    const color = typeColors[node.type] || typeColors.primary;
+
+    drawRoundedRect(node.x, node.y, node.width, node.height, 8);
+    ctx.fillStyle = color.fill;
+    ctx.fill();
+
+    ctx.fillStyle = color.text;
+    ctx.font = '500 14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(node.label, node.x + node.width / 2, node.y + node.height / 2);
+  }
+
+  // ===== 绘制连接线 =====
+  function drawConnection(from, to, label) {
+    const startX = from.x + from.width / 2;
+    const startY = from.y + from.height;
+    const endX = to.x + to.width / 2;
+    const endY = to.y;
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.strokeStyle = colors.muted;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const arrowSize = 8;
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - arrowSize, endY - arrowSize);
+    ctx.lineTo(endX + arrowSize, endY - arrowSize);
+    ctx.closePath();
+    ctx.fillStyle = colors.muted;
+    ctx.fill();
+
+    if (label) {
+      ctx.fillStyle = colors.muted;
+      ctx.font = '12px Inter, sans-serif';
+      ctx.fillText(label, (startX + endX) / 2, (startY + endY) / 2 - 10);
+    }
+  }
+
+  // ===== 主绘制函数 =====
+  function draw() {
+    const bounds = calculateContentBounds();
+    ctx.clearRect(0, 0, bounds.width, bounds.height);
+
+    connections.forEach(conn => {
+      const from = nodes.find(n => n.id === conn.from);
+      const to = nodes.find(n => n.id === conn.to);
+      drawConnection(from, to, conn.label);
+    });
+
+    nodes.forEach(node => drawNode(node));
+  }
+
+  setupCanvas();
+  window.addEventListener('resize', setupCanvas);
 })();
 </script>
 ```
@@ -259,10 +352,10 @@ mindmap
 
 | 要求 | 说明 |
 |------|------|
-| 先声明节点数据 | 确保边界计算时能遍历所有元素 |
-| 计算内容边界 | 获取最大 x+width 和 y+height |
-| 动态设置尺寸 | 不得硬编码 `canvas.height = 400` |
-| 外层滚动容器 | 使用 `max-height` + `overflow: auto` |
+| Retina 适配 | 使用 `devicePixelRatio` 缩放画布 |
+| 颜色变量 | 从 CSS 变量读取，提供 fallback |
+| 动态尺寸 | 根据内容计算，不硬编码高度 |
+| roundRect 兼容 | 提供 arcTo 回退方案 |
 
 ---
 

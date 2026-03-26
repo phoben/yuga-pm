@@ -71,7 +71,7 @@
     mermaid.initialize({
       startOnLoad: true,
       theme: 'default',
-      useMaxWidth: false,  // 让图表撑满容器
+      useMaxWidth: false,
       themeVariables: {
         primaryColor: '#3b82f6',
         primaryTextColor: '#ffffff',
@@ -79,6 +79,25 @@
         lineColor: '#94a3b8',
         secondaryColor: '#8b5cf6',
         tertiaryColor: '#f1f5f9',
+      },
+      flowchart: {
+        padding: 15,
+        curve: 'basis'
+      },
+      gantt: {
+        barHeight: 20,
+        barGap: 4,
+        topPadding: 50,
+        leftPadding: 75,
+        gridLineStartPadding: 35,
+        fontSize: 12,
+        topAxis: false,
+        displayMode: 'compact'
+      },
+      sequence: {
+        mirrorActors: false,
+        bottomMarginAdj: 1,
+        actorMargin: 50
       }
     });
   </script>
@@ -621,11 +640,11 @@
        ============================================ */
     .diagram-container {
       width: 100%;
-      min-height: 300px;
+      min-height: auto;
       background: hsl(var(--card));
       border: 1px solid hsl(var(--border));
       border-radius: var(--radius);
-      padding: 20px;
+      padding: 16px;
       margin: 16px 0;
       overflow-x: auto;
     }
@@ -639,6 +658,8 @@
     /* 让 Mermaid SVG 撑满容器 */
     .diagram-container .mermaid svg {
       width: 100% !important;
+      height: auto !important;
+      max-height: 600px;
       min-width: fit-content;
     }
 
@@ -650,23 +671,25 @@
       text-align: center;
     }
 
+    /* Canvas 蓝图包装器 */
+    .canvas-blueprint-wrapper {
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      margin: 16px 0;
+    }
+
     /* ============================================
        Canvas 蓝图容器样式（系统架构图等）
        ============================================ */
     .canvas-blueprint {
       width: 100%;
-      min-height: 400px;
       background: hsl(var(--card));
-      border: 1px solid hsl(var(--border));
-      border-radius: var(--radius);
-      margin: 16px 0;
-      overflow: hidden;
       position: relative;
+      padding: 20px;
     }
 
     .canvas-blueprint canvas {
-      width: 100%;
-      height: 100%;
+      display: block;
     }
 
     .canvas-blueprint-title {

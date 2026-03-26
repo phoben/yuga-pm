@@ -391,6 +391,14 @@ flowchart TD
 - 页面加载时 Mermaid 会自动渲染所有 `.mermaid` 元素
 - 参考 `${CLAUDE_SKILL_DIR}/references/diagram-conversion.md` 获取语法详情
 
+**Mermaid 甘特图优化配置：**
+
+甘特图默认渲染可能过高，已在 `framework.html` 中配置紧凑模式：
+- `displayMode: 'compact'` - 紧凑模式
+- `topAxis: false` - 移除顶部时间轴
+- `barHeight: 20` - 压缩行高
+- CSS `max-height: 600px` - 限制容器高度
+
 ### Canvas 原生绘制模板
 
 适用于系统架构图、网络拓扑图等需要精确控制布局的场景：
@@ -398,7 +406,7 @@ flowchart TD
 **⚠️ 关键要求：画布尺寸必须根据内容动态计算，避免内容被裁剪**
 
 ```html
-<div class="canvas-blueprint-wrapper" style="max-height: 600px; overflow: auto; border: 1px solid var(--border); border-radius: 8px;">
+<div class="canvas-blueprint-wrapper">
   <div class="canvas-blueprint">
     <span class="canvas-blueprint-title">系统架构图</span>
     <canvas id="blueprint-{unique-id}"></canvas>
@@ -410,12 +418,20 @@ flowchart TD
   const canvas = document.getElementById('blueprint-{unique-id}');
   const ctx = canvas.getContext('2d');
 
+  // ===== 颜色配置（从 CSS 变量读取） =====
+  const styles = getComputedStyle(document.documentElement);
+  const colors = {
+    foreground: styles.getPropertyValue('--foreground').trim() || '#0f172a',
+    primary: styles.getPropertyValue('--primary').trim() || '#3b82f6',
+    border: styles.getPropertyValue('--border').trim() || '#e2e8f0',
+    muted: styles.getPropertyValue('--muted-foreground').trim() || '#64748b'
+  };
+
   // ===== 步骤1: 定义节点数据（先声明所有元素） =====
   const nodes = [
     { id: 'node1', x: 100, y: 80, width: 140, height: 60, label: '前端应用', type: 'primary' },
-    { id: 'node2', x: 100, y: 200, width: 140, height: 60, label: 'API 网关', type: 'secondary' },
-    { id: 'node3', x: 100, y: 320, width: 140, height: 60, label: '微服务集群', type: 'primary' },
-    // 更多节点...
+    { id: 'node2', x: 100, y: 180, width: 140, height: 60, label: 'API 网关', type: 'secondary' },
+    { id: 'node3', x: 100, y: 280, width: 140, height: 60, label: '微服务集群', type: 'primary' },
   ];
 
   const connections = [
@@ -425,73 +441,75 @@ flowchart TD
 
   // ===== 步骤2: 计算内容边界（CRITICAL） =====
   function calculateContentBounds() {
-    let maxX = 0;
-    let maxY = 0;
-    const padding = 40; // 边距
+    let maxX = 0, maxY = 0;
+    const padding = 40;
 
     nodes.forEach(node => {
-      const nodeRight = node.x + node.width;
-      const nodeBottom = node.y + node.height;
-      if (nodeRight > maxX) maxX = nodeRight;
-      if (nodeBottom > maxY) maxY = nodeBottom;
+      maxX = Math.max(maxX, node.x + node.width);
+      maxY = Math.max(maxY, node.y + node.height);
     });
 
     return {
-      width: Math.max(canvas.parentElement.offsetWidth, maxX + padding),
-      height: Math.max(300, maxY + padding) // 最小高度300px
+      width: Math.max(400, maxX + padding),
+      height: Math.max(200, maxY + padding)
     };
   }
 
-  // ===== 步骤3: 设置画布尺寸（根据内容动态计算） =====
-  function resize() {
+  // ===== 步骤3: Retina 屏幕适配 =====
+  function setupCanvas() {
     const bounds = calculateContentBounds();
-    canvas.width = bounds.width;
-    canvas.height = bounds.height;
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = bounds.width * dpr;
+    canvas.height = bounds.height * dpr;
+    canvas.style.width = bounds.width + 'px';
+    canvas.style.height = bounds.height + 'px';
+
+    ctx.scale(dpr, dpr);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
     draw();
   }
 
-  // ===== 步骤4: 绘制函数 =====
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 绘制连接线
-    connections.forEach(conn => {
-      const fromNode = nodes.find(n => n.id === conn.from);
-      const toNode = nodes.find(n => n.id === conn.to);
-      drawConnection(fromNode, toNode, conn.label);
-    });
-
-    // 绘制节点
-    nodes.forEach(node => drawNode(node));
+  // ===== 步骤4: 绘制圆角矩形（含兼容性回退） =====
+  function drawRoundedRect(x, y, width, height, radius) {
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, width, height, radius);
+      return;
+    }
+    // arcTo 回退方案
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + width, y, x + width, y + height, radius);
+    ctx.arcTo(x + width, y + height, x, y + height, radius);
+    ctx.arcTo(x, y + height, x, y, radius);
+    ctx.arcTo(x, y, x + width, y, radius);
+    ctx.closePath();
   }
 
-  // 绘制节点
+  // ===== 步骤5: 绘制节点 =====
   function drawNode(node) {
-    const colors = {
-      primary: { fill: '#3b82f6', stroke: '#2563eb' },
-      secondary: { fill: '#6366f1', stroke: '#4f46e5' },
-      tertiary: { fill: '#10b981', stroke: '#059669' }
+    const typeColors = {
+      primary: { fill: colors.primary, text: '#ffffff' },
+      secondary: { fill: '#8b5cf6', text: '#ffffff' },
+      tertiary: { fill: '#10b981', text: '#ffffff' }
     };
-    const color = colors[node.type] || colors.primary;
+    const color = typeColors[node.type] || typeColors.primary;
 
-    // 绘制圆角矩形
-    ctx.beginPath();
-    ctx.roundRect(node.x, node.y, node.width, node.height, 8);
+    drawRoundedRect(node.x, node.y, node.width, node.height, 8);
     ctx.fillStyle = color.fill;
     ctx.fill();
-    ctx.strokeStyle = color.stroke;
-    ctx.lineWidth = 2;
-    ctx.stroke();
 
-    // 绘制文字
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '14px Inter, sans-serif';
+    ctx.fillStyle = color.text;
+    ctx.font = '500 14px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(node.label, node.x + node.width / 2, node.y + node.height / 2);
   }
 
-  // 绘制连接线
+  // ===== 步骤6: 绘制连接线 =====
   function drawConnection(from, to, label) {
     const startX = from.x + from.width / 2;
     const startY = from.y + from.height;
@@ -501,7 +519,7 @@ flowchart TD
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
-    ctx.strokeStyle = '#94a3b8';
+    ctx.strokeStyle = colors.muted;
     ctx.lineWidth = 2;
     ctx.stroke();
 
@@ -512,20 +530,36 @@ flowchart TD
     ctx.lineTo(endX - arrowSize, endY - arrowSize);
     ctx.lineTo(endX + arrowSize, endY - arrowSize);
     ctx.closePath();
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = colors.muted;
     ctx.fill();
 
     // 绘制标签
     if (label) {
-      ctx.fillStyle = '#64748b';
+      ctx.fillStyle = colors.muted;
       ctx.font = '12px Inter, sans-serif';
-      ctx.fillText(label, (startX + endX) / 2, (startY + endY) / 2 - 8);
+      ctx.fillText(label, (startX + endX) / 2, (startY + endY) / 2 - 10);
     }
   }
 
+  // ===== 步骤7: 主绘制函数 =====
+  function draw() {
+    const bounds = calculateContentBounds();
+    ctx.clearRect(0, 0, bounds.width, bounds.height);
+
+    // 绘制连接线
+    connections.forEach(conn => {
+      const from = nodes.find(n => n.id === conn.from);
+      const to = nodes.find(n => n.id === conn.to);
+      drawConnection(from, to, conn.label);
+    });
+
+    // 绘制节点
+    nodes.forEach(node => drawNode(node));
+  }
+
   // 初始化
-  resize();
-  window.addEventListener('resize', resize);
+  setupCanvas();
+  window.addEventListener('resize', setupCanvas);
 })();
 </script>
 ```
@@ -536,8 +570,9 @@ flowchart TD
 |------|------|------|
 | 定义节点数据 | 先声明所有元素 | 确保 `calculateContentBounds()` 能正确计算边界 |
 | 计算内容边界 | 必须 | 遍历所有节点，获取最大 x+width 和 y+height |
-| 设置画布尺寸 | 动态计算 | 使用边界值 + padding，不得硬编码固定高度 |
-| 滚动容器 | 必须 | 外层包裹 `max-height` + `overflow: auto` 的容器 |
+| Retina 适配 | 必须 | 使用 `devicePixelRatio` 缩放画布 |
+| 颜色变量 | 推荐 | 从 CSS 变量读取颜色，提供 fallback |
+| roundRect 兼容 | 推荐 | 检测 API 支持，提供 arcTo 回退 |
 
 **常见错误示例：**
 
