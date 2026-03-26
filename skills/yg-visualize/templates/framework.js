@@ -3,6 +3,13 @@
  * Extracted from framework.html
  */
 
+// ============================================
+// Constants
+// ============================================
+const MOBILE_BREAKPOINT = 768;
+const ARROW_SIZE = 8;
+const CANVAS_PADDING = 60;
+
 // Initialize Lucide icons
 lucide.createIcons();
 
@@ -124,11 +131,10 @@ window.CanvasHelper = {
     ctx.stroke();
 
     // 绘制箭头
-    const arrowSize = 8;
     ctx.beginPath();
     ctx.moveTo(endX, endY);
-    ctx.lineTo(endX - arrowSize, endY - arrowSize);
-    ctx.lineTo(endX + arrowSize, endY - arrowSize);
+    ctx.lineTo(endX - ARROW_SIZE, endY - ARROW_SIZE);
+    ctx.lineTo(endX + ARROW_SIZE, endY - ARROW_SIZE);
     ctx.closePath();
     ctx.fillStyle = colors.muted;
     ctx.fill();
@@ -144,7 +150,6 @@ window.CanvasHelper = {
   // 计算内容边界
   calculateBounds(nodes, connections) {
     let maxX = 0, maxY = 0;
-    const padding = 60;
 
     nodes.forEach(node => {
       maxX = Math.max(maxX, node.x + node.width);
@@ -165,8 +170,8 @@ window.CanvasHelper = {
     }
 
     return {
-      width: Math.max(400, maxX + padding),
-      height: Math.max(200, maxY + padding)
+      width: Math.max(400, maxX + CANVAS_PADDING),
+      height: Math.max(200, maxY + CANVAS_PADDING)
     };
   }
 };
@@ -272,34 +277,40 @@ document.querySelectorAll('.accordion-trigger').forEach(trigger => {
 /* ============================================
    Toggle All Accordions
    ============================================ */
-let allAccordionsExpanded = false;
+(function() {
+  let allAccordionsExpanded = false;
 
-function toggleAllAccordions() {
-  const accordionItems = document.querySelectorAll('.accordion-item');
-  const expandIcon = document.querySelector('.accordion-icon-expand');
-  const collapseIcon = document.querySelector('.accordion-icon-collapse');
+  function toggleAllAccordions() {
+    const accordionItems = document.querySelectorAll('.accordion-item');
+    const expandIcon = document.querySelector('.accordion-icon-expand');
+    const collapseIcon = document.querySelector('.accordion-icon-collapse');
 
-  allAccordionsExpanded = !allAccordionsExpanded;
+    allAccordionsExpanded = !allAccordionsExpanded;
 
-  accordionItems.forEach(item => {
-    item.setAttribute('data-state', allAccordionsExpanded ? 'open' : 'closed');
-  });
+    accordionItems.forEach(item => {
+      item.setAttribute('data-state', allAccordionsExpanded ? 'open' : 'closed');
+    });
 
-  // 切换图标显示：展开状态显示eye-off，折叠状态显示eye
-  if (allAccordionsExpanded) {
-    expandIcon.classList.add('hidden');
-    collapseIcon.classList.remove('hidden');
-  } else {
-    expandIcon.classList.remove('hidden');
-    collapseIcon.classList.add('hidden');
+    // 切换图标显示：展开状态显示eye-off，折叠状态显示eye
+    if (allAccordionsExpanded) {
+      expandIcon.classList.add('hidden');
+      collapseIcon.classList.remove('hidden');
+    } else {
+      expandIcon.classList.remove('hidden');
+      collapseIcon.classList.add('hidden');
+    }
   }
-}
+
+  // Make it globally accessible
+  window.toggleAllAccordions = toggleAllAccordions;
+})();
 
 /* ============================================
    PDF Export Functionality
    ============================================ */
 async function exportPDF() {
   const btn = document.getElementById('export-pdf-btn');
+  if (!btn) return;
   const printerIcon = btn.querySelector('.export-icon-printer');
   const loaderIcon = btn.querySelector('.export-icon-loader');
 
@@ -416,7 +427,7 @@ document.getElementById('sidebar-overlay')?.addEventListener('click', toggleSide
 // 点击导航项后自动关闭侧边栏（移动端）
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('sidebar-overlay');
       if (sidebar?.classList.contains('open')) {
