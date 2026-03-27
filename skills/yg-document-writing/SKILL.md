@@ -1,6 +1,6 @@
 ---
 name: yg-document-writing
-description: 编写各类需求文档（BRD/PRD/TRD/SRS/DRD）。当用户提及"生成需求文档"、"编写需求文档"、"撰写需求文档"时触发。
+description: 编写各类需求文档（BRD/PRD/TRD/SRS）。当用户提及"生成需求文档"、"编写需求文档"、"撰写需求文档"时触发。
 ---
 
 # 文档编写
@@ -20,7 +20,6 @@ TRIGGER when: 用户提及以下关键词：
 - 编写产品需求文档（PRD）
 - 编写技术需求文档（TRD）
 - 编写软件需求规格说明书（SRS）
-- 编写设计需求文档（DRD）
 
 ## 支持文档类型
 
@@ -30,7 +29,6 @@ TRIGGER when: 用户提及以下关键词：
 | PRD | Product Requirements Document | 产品功能需求，详细设计 |
 | TRD | Technical Requirements Document | 技术实现需求 |
 | SRS | Software Requirements Specification | 软件需求规格说明 |
-| DRD | Design Requirements Document | 设计需求文档 |
 
 ## 超出范围处理
 
@@ -39,7 +37,7 @@ TRIGGER when: 用户提及以下关键词：
 1. **告知用户**：说明当前技能不支持的文档类型
 2. **引导创建**：建议用户调用 `/yg-create-document-template` 技能创建新的文档模板
 3. **示例话术**：
-   > "当前技能暂不支持「XXX」类型的文档。您可以使用 `/yg-create-document-template` 技能创建新的文档模板，或选择以下已支持的类型：BRD、PRD、TRD、SRS、DRD。"
+   > "当前技能暂不支持「XXX」类型的文档。您可以使用 `/yg-create-document-template` 技能创建新的文档模板，或选择以下已支持的类型：BRD、PRD、TRD、SRS。"
 
 ## 场景模板
 
@@ -61,6 +59,19 @@ TRIGGER when: 用户提及以下关键词：
 ```
 
 ## 执行流程
+
+### 流程模式选择
+
+根据需求规模自动选择流程模式：
+
+| 模式 | 触发条件 | 流程步骤 |
+|------|----------|----------|
+| **完整模式** | 预估文档 > 8000字 | 完整9步流程 |
+| **快速模式** | 预估文档 ≤ 8000字 | 简化5步流程 |
+
+**规模判断方法：** 需求字数 × 3 = 预估文档字数
+
+### 完整模式流程
 
 ```
 1. 需求预审核（新增）
@@ -99,6 +110,20 @@ TRIGGER when: 用户提及以下关键词：
                       （迭代修复，最多3次）
                                 ↓
                     9. 交付完整文档地址
+```
+
+### 快速模式流程
+
+```
+1. 需求预审核 → 通过
+       ↓
+2. 类型确认
+       ↓
+3. 直接生成文档（跳过大纲确认）
+       ↓
+4. 简化质量检查（仅检查格式和需求覆盖）
+       ↓
+5. 交付文档
 ```
 
 ---
@@ -148,9 +173,61 @@ Agent tool (general-purpose):
 
 ---
 
+## 信息收集
+
+在类型确认和模板加载后，收集编写文档所需的完整信息。
+
+### 收集来源
+
+| 来源 | 说明 |
+|------|------|
+| 项目上下文 | 读取 `.yg-pm/projects/{project-id}/` 下的已有文档 |
+| 用户输入 | 通过 AskUserQuestion 收集缺失信息 |
+| 原始需求 | 用户提供的原始需求文档 |
+
+### 收集内容
+
+| 信息类型 | 必要性 | 来源 |
+|----------|--------|------|
+| 项目背景 | 必须 | 项目上下文/用户输入 |
+| 目标用户 | 必须 | 原始需求/用户输入 |
+| 功能清单 | 必须 | 原始需求 |
+| 数据需求 | 可选 | 原始需求/用户输入 |
+| 非功能需求 | 可选 | 原始需求/用户输入 |
+
+### 执行流程
+
+```
+1. 读取项目上下文
+   ↓
+2. 解析原始需求文档
+   ↓
+3. 识别缺失信息
+   ↓
+4. 如有缺失 → 使用 AskUserQuestion 收集
+   ↓
+5. 整合所有信息，准备生成大纲
+```
+
+### 信息完整性检查
+
+在信息收集完成后，确认以下内容已齐全：
+
+- [ ] 项目名称和背景
+- [ ] 目标用户定义
+- [ ] 核心功能列表
+- [ ] 业务场景描述
+
+---
+
 ## 生成大纲
 
 生成文档大纲，包含章节结构、术语表和需求映射表，供用户确认。
+
+**大纲文件路径：**
+```
+.yg-pm/projects/{project-id}/drafts/outline-{timestamp}.md
+```
 
 **输出格式：**
 
@@ -183,6 +260,45 @@ Agent tool (general-purpose):
 ```
 
 **确认机制：** 使用 AskUserQuestion 工具让用户确认大纲，支持修改建议。
+
+**大纲与文档合并机制：**
+
+大纲确认后，按以下流程合并为最终文档：
+
+```
+1. 大纲作为文档头部（目录部分）
+2. 章节内容按顺序追加到大纲后面
+3. 最终文档保存到用户指定路径
+```
+
+**合并后的文档结构示例：**
+
+```markdown
+# [文档标题]
+
+## 目录
+1. 产品概述
+   1.1 项目背景
+   1.2 产品定位
+2. 功能需求
+   2.1 功能模块A
+   ...
+
+---
+
+## 1. 产品概述
+
+### 1.1 项目背景
+[章节内容...]
+
+### 1.2 产品定位
+[章节内容...]
+
+## 2. 功能需求
+
+### 2.1 功能模块A
+[章节内容...]
+```
 
 **参考规则：**
 - `${CLAUDE_SKILL_DIR}/rules/requirement-mapping.md`
@@ -219,6 +335,46 @@ Agent tool (general-purpose):
 ### 数据库设计章节
 
 检测到数据建模相关内容时，调用 `database-schema-designer` 技能。
+
+### 章节任务管理
+
+使用 TodoWrite 工具管理章节生成进度。
+
+**创建章节任务清单：**
+
+大纲确认后，根据大纲章节创建任务：
+
+```json
+{
+  "todos": [
+    {"activeForm": "编写产品概述章节", "content": "编写 1. 产品概述", "status": "pending"},
+    {"activeForm": "编写功能需求章节", "content": "编写 2. 功能需求", "status": "pending"},
+    {"activeForm": "编写数据需求章节", "content": "编写 3. 数据需求", "status": "pending"},
+    {"activeForm": "编写非功能需求章节", "content": "编写 4. 非功能需求", "status": "pending"}
+  ]
+}
+```
+
+**章节执行与状态更新：**
+
+| 阶段 | 操作 |
+|------|------|
+| 开始编写章节 | 更新状态为 `in_progress` |
+| SubAgent 完成返回 | 更新状态为 `completed` |
+| 所有章节完成 | 进入质量检查阶段 |
+
+**执行流程：**
+
+```
+1. 创建章节任务清单（全部 pending）
+2. 派发 SubAgent 编写第一章
+   - 更新第一章状态为 in_progress
+3. SubAgent 返回完成
+   - 更新第一章状态为 completed
+4. 派发 SubAgent 编写第二章
+   ...
+5. 所有章节 completed → 进入质量检查
+```
 
 ---
 
@@ -349,7 +505,6 @@ yg-document-writing/
     ├── prd-template.md         # PRD模板
     ├── trd-template.md         # TRD模板
     ├── srs-template.md         # SRS模板
-    ├── drd-generator.md         # DRD生成器
     ├── automation-template.md  # 自动化场景模板
     ├── permission-matrix-template.md  # 权限矩阵模板
     └── view-dashboard-template.md    # 视图仪表盘模板
@@ -365,13 +520,39 @@ yg-document-writing/
 | `references/prd-template.md` | PRD 产品需求文档模板 |
 | `references/trd-template.md` | TRD 技术需求文档模板 |
 | `references/srs-template.md` | SRS 软件需求规格说明模板 |
-| `references/drd-generator.md` | DRD 设计需求文档生成器 |
 | `references/er-diagram-guide.md` | ER图设计规范指南 |
 | `references/diagram-types-guide.md` | 需求文档图表类型指南 |
 | `references/automation-template.md` | 自动化场景设计模板 |
 | `references/permission-matrix-template.md` | 权限矩阵设计模板 |
 | `references/view-dashboard-template.md` | 视图与仪表盘设计模板 |
 | `references/forguncy-project.md` | 活字格类型项目必须先阅读此文档 |
+
+## 异常处理
+
+| 异常场景 | 处理方式 |
+|----------|----------|
+| 原始需求无法读取 | 提示用户重新提供文件路径或内容 |
+| SubAgent 执行超时 | 重试1次，失败后上报用户决定 |
+| 质量检查3次迭代未通过 | 上报用户，提供问题清单供用户决定后续处理 |
+| 大纲用户拒绝确认 | 根据用户反馈修改大纲后重新确认 |
+| 文档类型不支持 | 建议用户使用 `/yg-create-document-template` 创建模板 |
+
+## 技能协作
+
+### 前置技能
+
+| 技能 | 协作场景 |
+|------|----------|
+| `yg-brainstorming` | 需求预审核-内容问题 时调用，收集完整需求信息 |
+| `yg-requirement-extraction` | 需求预审核-结构问题 时调用，自动整理需求结构 |
+
+### 后续技能
+
+| 技能 | 协作场景 |
+|------|----------|
+| `yg-requirement-reviewer` | 文档编写完成后进行深度审查与仿真验证 |
+| `yg-visualize` | 将文档转换为可视化原型 |
+| `database-schema-designer` | 数据建模章节时自动调用 |
 
 ## 下一步建议
 

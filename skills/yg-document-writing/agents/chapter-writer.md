@@ -41,6 +41,9 @@ model: sonnet
 | `terminology` | 术语表（必须使用） |
 | `related_requirements` | 本章关联的原始需求内容 |
 | `previous_context` | 前序章节上下文（根据耦合度） |
+| `output_document_path` | 最终文档的完整路径 |
+| `write_mode` | 写入模式：`create`（创建新文档）/ `append`（追加到现有文档） |
+| `chapter_insert_position` | 章节插入位置（行号），仅在 append 模式使用 | |
 
 ---
 
@@ -76,7 +79,31 @@ model: sonnet
 
 ### 步骤5: 写入文档
 
-使用 Write 工具将章节内容写入文档文件。
+根据 `write_mode` 参数选择写入方式：
+
+#### 情况A - 创建模式（write_mode=create）
+
+使用 Write 工具创建新文档：
+- 写入完整的章节内容（包含章节标题和所有内容）
+- 路径：`output_document_path`
+
+#### 情况B - 追加模式（write_mode=append）
+
+使用 Edit 工具追加章节内容：
+1. 读取现有文档结构（使用 Read 工具的 offset/limit 参数精准读取）
+2. 在 `chapter_insert_position` 指定的位置插入章节内容
+3. 确保章节顺序正确，不覆盖已有内容
+
+**写入内容格式：**
+
+```markdown
+## {chapter_id} {chapter_title}
+
+[章节正文内容...]
+
+### {子节标题}
+[子节内容...]
+```
 
 ---
 
