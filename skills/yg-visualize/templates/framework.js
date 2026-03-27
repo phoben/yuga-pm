@@ -205,22 +205,15 @@ function toggleTheme() {
   setTheme(newTheme);
 }
 
-// Initialize theme
+// Initialize theme - 默认使用亮色主题
 (function initTheme() {
   const storedTheme = getStoredTheme();
   if (storedTheme) {
     setTheme(storedTheme);
   } else {
-    setTheme(getSystemTheme());
+    setTheme('light'); // 默认亮色主题，不跟随系统
   }
 })();
-
-// Listen for system theme changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-  if (!getStoredTheme()) {
-    setTheme(e.matches ? 'dark' : 'light');
-  }
-});
 
 /* ============================================
    Navigation Sync with IntersectionObserver
