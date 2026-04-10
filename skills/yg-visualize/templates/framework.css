@@ -448,6 +448,18 @@ html, body {
   margin: 16px 0;
 }
 
+/* 卡片内的 accordion-group 需要内边距 */
+.bg-card > .accordion-group {
+  margin: 0;
+  padding: 12px 16px;
+}
+
+/* 章节内容区域内的卡片嵌套 accordion-group */
+section .space-y-6 > .rounded-lg.border.bg-card > .accordion-group {
+  margin: 0;
+  padding: 12px 16px;
+}
+
 .accordion-item {
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
@@ -494,7 +506,7 @@ html, body {
 }
 
 .accordion-item[data-state="open"] .accordion-content {
-  max-height: 2000px;
+  max-height: 5000px;
   transition: max-height 0.5s ease-in;
 }
 
@@ -545,7 +557,7 @@ html, body {
 }
 
 /* ============================================
-   Mermaid 图表容器样式
+   Mermaid 图表容器样式 - 自适应缩放
    ============================================ */
 .diagram-container {
   width: 100%;
@@ -555,21 +567,38 @@ html, body {
   border-radius: var(--radius);
   padding: 16px;
   margin: 16px 0;
-  overflow-x: auto;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .diagram-container .mermaid {
   width: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
 }
 
-/* 让 Mermaid SVG 撑满容器 */
+/* 让 Mermaid SVG 自适应缩放，强制约束宽度 */
 .diagram-container .mermaid svg {
   width: 100% !important;
+  max-width: 100% !important;
   height: auto !important;
-  max-height: 600px;
-  min-width: fit-content;
+  max-height: none !important;
+  min-width: 0 !important;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* 针对 flowchart 等宽图表，确保不超出 */
+.diagram-container .mermaid svg[viewBox] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* 覆盖 Mermaid 可能设置的内联 max-width style */
+.diagram-container .mermaid svg[style*="max-width"] {
+  max-width: 100% !important;
 }
 
 .diagram-title {
@@ -652,11 +681,21 @@ html, body {
   display: none !important;
 }
 
+/* PDF导出时隐藏文档header（封面已有标题） */
+.pdf-export-mode main > header {
+  display: none !important;
+}
+
 /* PDF导出时的正文样式调整 */
 .pdf-export-mode main {
   margin-left: 0 !important;
   max-width: 100% !important;
-  padding: 40px 60px !important;
+  padding: 15px 30px !important;
+}
+
+/* 减小article的间距 */
+.pdf-export-mode article {
+  gap: 1.5rem !important;
 }
 
 /* 分页控制 */
@@ -673,6 +712,12 @@ html, body {
 /* H2标题与内容保持在同一页 */
 .pdf-export-mode section h2 {
   page-break-after: avoid;
+}
+
+/* 文章末尾不分页 */
+.pdf-export-mode article {
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 /* 打印媒体查询（备用） */
@@ -695,51 +740,67 @@ html, body {
 }
 
 .pdf-export-mode .pdf-cover {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  display: block;
   page-break-after: always;
+  page-break-inside: avoid;
   background: hsl(var(--background));
   text-align: center;
   position: relative;
+  padding: 60px 50px;
+  min-height: auto;
+}
+
+.pdf-cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, hsl(var(--primary)), #8b5cf6, hsl(var(--primary)));
 }
 
 .pdf-cover-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-bottom: 40px;
 }
 
 .pdf-cover-badge {
   display: inline-block;
-  padding: 4px 12px;
-  background: hsl(var(--primary));
+  padding: 5px 14px;
+  background: linear-gradient(135deg, hsl(var(--primary)), #2563eb);
   color: hsl(var(--primary-foreground));
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 24px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  box-shadow: 0 3px 10px rgba(59, 130, 246, 0.25);
 }
 
 .pdf-cover-title {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   color: hsl(var(--foreground));
   margin-bottom: 12px;
-  max-width: 80%;
+  max-width: 85%;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
 }
 
 .pdf-cover-subtitle {
   font-size: 18px;
   color: hsl(var(--muted-foreground));
-  margin-bottom: 48px;
+  margin-bottom: 40px;
+  font-weight: 400;
 }
 
 .pdf-cover-meta {
   display: flex;
-  gap: 32px;
+  gap: 40px;
   justify-content: center;
 }
 
@@ -750,23 +811,25 @@ html, body {
 }
 
 .pdf-cover-label {
-  font-size: 12px;
+  font-size: 11px;
   color: hsl(var(--muted-foreground));
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  font-weight: 500;
 }
 
 .pdf-cover-value {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: hsl(var(--foreground));
 }
 
 .pdf-cover-footer {
-  margin-top: auto;
-  padding-top: 60px;
+  padding-top: 30px;
   font-size: 12px;
   color: hsl(var(--muted-foreground));
+  font-weight: 400;
+  border-top: 1px solid hsl(var(--border));
 }
 
 /* ============================================
@@ -778,18 +841,18 @@ html, body {
 
 .pdf-export-mode .pdf-toc {
   display: block;
-  height: 100vh;
   page-break-after: always;
-  padding: 60px 80px;
+  page-break-inside: avoid;
+  padding: 30px 40px;
   background: hsl(var(--background));
 }
 
 .pdf-toc-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   color: hsl(var(--foreground));
-  margin-bottom: 32px;
-  padding-bottom: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
   border-bottom: 2px solid hsl(var(--border));
 }
 

@@ -82,7 +82,20 @@
       },
       flowchart: {
         padding: 15,
-        curve: 'basis'
+        curve: 'basis',
+        useMaxWidth: true
+      },
+      journey: {
+        useMaxWidth: true,
+        diagramMarginX: 10,
+        diagramMarginY: 10,
+        leftMargin: 50,
+        width: 150,
+        height: 50,
+        boxMargin: 10,
+        boxTextMargin: 5,
+        noteMargin: 10,
+        messageMargin: 35
       },
       gantt: {
         barHeight: 20,
@@ -99,7 +112,11 @@
       sequence: {
         mirrorActors: false,
         bottomMarginAdj: 1,
-        actorMargin: 50
+        actorMargin: 50,
+        useMaxWidth: true
+      },
+      mindmap: {
+        useMaxWidth: true
       }
     });
   </script>

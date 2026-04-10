@@ -567,3 +567,26 @@ Read(file_path="{output_html_path}", offset=目标行附近, limit=20)
 | 次要/说明文字 | `text-muted-foreground` |
 | 强调文字 | `text-primary` |
 | 链接文字 | `text-primary underline` |
+
+### 标签颜色使用规范
+
+**禁止使用 `text-secondary` 作为标签文字颜色**，因为在亮色主题下该颜色接近白色，不可见。
+
+| 场景 | 推荐类名 | 效果 |
+|------|----------|------|
+| 主要标签 | `bg-primary/10 text-primary` | 蓝色背景+蓝色文字 |
+| 成功/通过 | `bg-green-500/10 text-green-600` | 绿色背景+绿色文字 |
+| 警告/注意 | `bg-yellow-500/10 text-yellow-600` | 黄色背景+黄色文字 |
+| 紫色/次要 | `bg-violet-500/10 text-violet-600` | 紫色背景+紫色文字 |
+| 危险/错误 | `bg-red-500/10 text-red-600` | 红色背景+红色文字 |
+| 信息/数据 | `bg-blue-500/10 text-blue-600` | 蓝色背景+蓝色文字 |
+
+**错误示例：**
+```html
+<span class="bg-secondary/10 text-secondary">工单</span>  <!-- ❌ 浅灰色文字不可见 -->
+```
+
+**正确示例：**
+```html
+<span class="bg-violet-500/10 text-violet-600">工单</span>  <!-- ✅ 深色文字可见 -->
+``` |
