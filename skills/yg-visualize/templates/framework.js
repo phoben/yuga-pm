@@ -330,7 +330,7 @@ async function exportPDF() {
     // PDF配置
     const element = document.body;
     const opt = {
-      margin: [15, 15, 20, 15], // 上右下左，留出页脚空间
+      margin: [10, 10, 15, 10], // 上右下左，减小边距
       filename: getPDFFileName(),
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: {
@@ -344,8 +344,7 @@ async function exportPDF() {
         orientation: 'portrait'
       },
       pagebreak: {
-        mode: ['avoid-all', 'css', 'legacy'],
-        after: '.pdf-cover, .pdf-toc'
+        mode: ['css', 'legacy']
       }
     };
 
