@@ -8,6 +8,14 @@
           "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-context.sh\"",
           "timeout": 10000
         }]
+      },
+      {
+        "matcher": "Bash.*git push.*origin.*master",
+        "hooks": [{
+          "type": "command",
+          "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-push-version-check.sh\"",
+          "timeout": 30000
+        }]
       }
     ],
     "PostToolUse": [
