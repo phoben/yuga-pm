@@ -1,12 +1,9 @@
 #!/bin/bash
 #
-# PreToolUse hook: git push 前检查版本号
-# 匹配模式: Bash.*git push
+# PreToolUse hook: Bash 工具调用前检查版本号
+# matcher: Bash（所有 Bash 调用）
 #
-# 功能：
-# 1. 检测是否推送 master 分支
-# 2. 比较远程与本地版本号
-# 3. 如果版本相同，自动递增并提交
+# 只在 git push origin master 时触发版本检查
 #
 
 set -e
@@ -14,14 +11,21 @@ set -e
 # Windows Git Bash 需要禁用路径转换
 export MSYS_NO_PATHCONV=1
 
-# 获取工具调用参数（环境变量或 stdin）
-# Claude Code PreToolUse hook 会通过 stdin 传入工具调用信息
-INPUT=$(cat)
+# 获取工具调用信息（Claude Code 通过 stdin 传入）
+INPUT=$(cat 2>/dev/null || echo "")
+
+# 调试日志（写入临时文件）
+DEBUG_LOG="/tmp/claude-hook-debug.log"
+echo "[$(date)] Hook triggered. Input: $INPUT" >> "$DEBUG_LOG" 2>/dev/null || true
 
 # 检查是否包含 git push 命令
-if ! echo "$INPUT" | grep -q "git push"; then
+if ! echo "$INPUT" | grep -qi "git push"; then
+    # 不是 git push 命令，直接退出
     exit 0
 fi
+
+# 调试：记录是 git push
+echo "[$(date)] Detected git push command" >> "$DEBUG_LOG" 2>/dev/null || true
 
 # 检查是否推送 master 分支
 CURRENT_BRANCH=$(git branch --show-current)
@@ -31,7 +35,8 @@ if [ "$CURRENT_BRANCH" != "master" ]; then
 fi
 
 # 检查是否推送 origin
-if ! echo "$INPUT" | grep -q "origin"; then
+if ! echo "$INPUT" | grep -qi "origin"; then
+    echo "ℹ️  [Hook] 非推送到 origin，跳过版本检查"
     exit 0
 fi
 
