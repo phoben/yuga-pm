@@ -7,6 +7,10 @@
 # {"session_id":"...","tool_name":"Bash","tool_input":{"command":"git push ..."}}
 #
 
+# 调试日志
+DEBUG_LOG="/tmp/claude-hook-debug.log"
+echo "[$(date)] Hook triggered. stdin: $(cat)" >> "$DEBUG_LOG" 2>/dev/null || true
+
 # Windows Git Bash 需要禁用路径转换
 export MSYS_NO_PATHCONV=1
 
@@ -14,8 +18,9 @@ export MSYS_NO_PATHCONV=1
 INPUT=$(cat)
 
 # 提取 command 字段（不使用 jq）
-# 匹配 "command":"..." 模式
 CMD=$(echo "$INPUT" | grep -o '"command":"[^"]*"' | head -1 | sed 's/"command":"//;s/"$//')
+
+echo "[$(date)] Extracted command: $CMD" >> "$DEBUG_LOG" 2>/dev/null || true
 
 # 如果不是 git push 命令，直接退出
 if [ -z "$CMD" ] || ! echo "$CMD" | grep -qi "git push"; then
